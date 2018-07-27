@@ -35,11 +35,15 @@
 import argparse
 import os
 import pickle
+import spacy
+import re
 
 from chronoML import DecisionTree as DTree
 from chronoML import NB_nltk_classifier as NBclass, ChronoKeras
 from chronoML import SVM_classifier as SVMclass
-from Chrono import TimePhrase_to_Chrono
+from Chrono import DosePhrase_to_Chrono
+from Chrono import BuildEntities
+# from Chrono import TimePhrase_to_Chrono
 from Chrono import referenceToken
 from Chrono import utils
 from keras.models import load_model
@@ -66,7 +70,8 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     ## Now we can access each argument as args.i, args.o, args.r
-    print(args.i);
+    print(args.i)
+
     ## Get list of folder names in the input directory
     indirs = []
     infiles = []
@@ -139,8 +144,14 @@ if __name__ == "__main__":
     
         ## parse out reference tokens
         text, tokens, spans, tags = utils.gettext, tokens, spans, tags = utils.getWhitespaceTokens(infiles[f]+args.x)
-        #my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, remove_stopwords="./Chrono/stopwords_short2.txt")
+        nlp = spacy.load('en_core_web_sm')
+        doc = nlp(text)
+        chunks = []
+        for chunk in doc.noun_chunks:
+            chunks.append(chunk.text)
+        #my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags, remove_stopwords="./Chrono/dosestopwords.txt")
         my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags)
+
         
         if(debug) :
             print("REFERENCE TOKENS:\n")
@@ -148,13 +159,31 @@ if __name__ == "__main__":
     
         ## mark all ref tokens if they are numeric or temporal
         chroList = utils.markTemporal(my_refToks)
+
+        chroList = utils.markDose(my_refToks)
+        dosePhrases = utils.getDosePhrases(chroList, doctime)
+        for dose in dosePhrases:
+            for chunk in chunks:
+                if dose.getText() in chunk and ("bw" in chunk.lower() or "b.w" in chunk.lower() or "body" in chunk.lower()):
+                    startpoint = text.find(chunk)
+                    endpoint = startpoint + len(chunk)
+                    if dose.getSpan()[0]>=startpoint and dose.getSpan()[1]<=endpoint:
+                        start = chunk.find(dose.getText())
+                        end = start + len(dose.getText())
+                        rest = chunk[end:]
+                        dose.setText(dose.getText()+rest)
+                        dose.setSpan(dose.getSpan()[0], len(dose.getText()))
+                        break
         tempPhrases = utils.getTemporalPhrases(chroList, doctime)
-    
-        #for c in chroList:
-        #    print(c)
-    
-        chrono_master_list = TimePhrase_to_Chrono.buildChronoList(tempPhrases)
-        
+
+
+
+        chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
+                                                                                        my_chrono_ID_counter, chroList,
+                                                                                        (classifier, args.m), feats,
+                                                                                        doctime)
+        #chrono_master_list = DosePhrase_to_Chrono.buildChronoList(dosePhrases)
+
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
     

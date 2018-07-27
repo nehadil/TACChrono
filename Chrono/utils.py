@@ -1,4 +1,5 @@
-# Copyright (c) 2018 
+# coding=utf-8
+# Copyright (c) 2018
 # Amy L. Olex, Virginia Commonwealth University
 # alolex at vcu.edu
 #
@@ -32,17 +33,19 @@
 
 
 
-## Provides all helper functions for Chrono methods.
+## Provides all helper functions for Chrono methods. 
 
 
 import nltk
 from nltk.tokenize import WhitespaceTokenizer
+from nltk.tokenize import sent_tokenize
 from nltk.stem.snowball import SnowballStemmer
 # from Chrono import chronoEntities as t6
 from Chrono import temporalTest as tt
 import dateutil.parser
 # import datetime
 # from Chrono import TimePhrase_to_Chrono
+from Chrono import DosePhraseEntity as dp
 from Chrono import TimePhraseEntity as tp
 import re
 import csv
@@ -62,11 +65,15 @@ import copy
 def getWhitespaceTokens(file_path):
     file = open(file_path, "r")
     text = file.read()
+    ## Testing the replacement of all "=" signs by spaces before tokenizing.
+    text = text.translate(str.maketrans("=", ' '))
+    
     span_generator = WhitespaceTokenizer().span_tokenize(text)
     spans = [span for span in span_generator]
     tokenized_text = WhitespaceTokenizer().tokenize(text)
     tags = nltk.pos_tag(tokenized_text)
     return text, tokenized_text, spans, tags
+
 
 ## Reads in the dct file and converts it to a datetime object.
 # @author Amy Olex
@@ -77,20 +84,22 @@ def getDocTime(file_path):
     text = file.read()
     return(dateutil.parser.parse(text))
 
-
+  
 ## Writes out the full XML file for all T6entities in list.
 # @author Amy Olex
 # @param chrono_list The list of Chrono objects needed to be written in the file.
 # @param outfile A string containing the output file location and name.
 def write_xml(chrono_list, outfile):
     fout = open(outfile + ".completed.xml", "w")
+    fout.write("<data>\n<annotations>\n")
     for c in chrono_list :
-        fout.write(str(c.print_xml())+"\n")
-
+        fout.write(str(c.print_xml()))
+    
+    fout.write("\n</annotations>\n</data>")
     fout.close()
  ####
  #END_MODULE
- ####
+ ####   
 
 
 ## Marks all the reference tokens that show up in the TimePhrase entity list.
@@ -110,7 +119,7 @@ def write_xml(chrono_list, outfile):
 ####
 #END_MODULE
 ####
-
+    
 ## Takes in a text string and returns the numerical value
 # @author Amy Olex
 # @param text The string containing our number
@@ -119,12 +128,12 @@ def getNumberFromText(text):
     try :
         number = w2n.word_to_num(text)
     except ValueError:
-        number = isOrdinal(text)
+        number = isOrdinal(text)                                                                                                                   
 
     return number
 ####
 #END_MODULE
-####
+####  
 
 ## Function to identify an ordinal number
 # @author Amy Olex
@@ -195,20 +204,32 @@ def isOrdinal(text):
         number = 31
     else:
         number = None
-
+    
     return number
-
+       
 ####
 #END_MODULE
-####
-
+####    
+  
 ## Function to get the integer representation of a text month
-# @author Amy Olex
+# @author Amy Olex  
 # @param text The text string to be converted to an integer.
 def getMonthNumber(text):
-    month_dict = {'January':1, 'February':2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September':9, 'October':10,'November':11, 'December':12}
-    return month_dict[text]
-
+    month_dict = {'January':1, 'February':2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September':9, 'October':10,'November':11, 'December':12,
+                  'JANUARY':1, 'FEBRUARY':2, 'MARCH':3, 'APRIL':4, 'MAY':5, 'JUNE':6, 'JULY':7, 'AUGUST':8, 'SEPTEMBER':9, 'OCTOBER':10,'NOVEMBER':11, 'DECEMBER':12, 
+                  'january':1, 'february':2, 'march':3, 'april':4, 'june':6, 'july':7, 'august':8, 'september':9, 'october':10,'november':11, 'december':12,
+                  'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'Jun':6, 'Jul':7, 'Aug':8, 'Sept':9, 'Sep':9, 'Oct':10,'Nov':11, 'Dec':12,
+                  'jan':1, 'feb':2, 'mar':3, 'apr':4, 'jun':6, 'jul':7, 'aug':8, 'sept':9, 'sep':9, 'oct':10,'nov':11, 'dec':12,
+                  'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'JUN':6, 'JUL':7, 'AUG':8, 'SEPT':9, 'SEP':9, 'OCT':10,'NOV':11, 'DEC':12,
+                  '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, '11':11, '12':12,
+                  '01':1, '02':2, '03':3, '04':4, '05':5, '06':6, '07':7, '08':8, '09':9, '10':10, '11':11, '12':12}
+    try:
+        value = month_dict[text]
+    except KeyError:
+        value = 100
+    
+    return value
+   
 ## Function to determine if the input span overlaps this objects span
 # @author Amy Olex
 # @param sp1 a 2-tuple with the first start and end span
@@ -220,10 +241,10 @@ def overlap(sp1, sp2) :
     if list(set(x) & set(y)) != []:
         return True
     else:
-        return False
-
-
-
+        return False 
+        
+        
+        
 ## Function to extract prediction features
 # @author Amy Olex
 # @param reftok_list The full document being parsed as a list of tokens.
@@ -234,19 +255,19 @@ def extract_prediction_features(reftok_list, reftok_idx, feature_dict) :
 
     reftok = reftok_list[reftok_idx]
     window = 5
-
+    
     ### Extract the stem feature
     my_str = reftok.getText()
     stemmer = SnowballStemmer("english")
     my_stem = stemmer.stem(reftok.getText().lower())
     if(my_stem in feature_dict.keys()):
         feature_dict[my_stem] = '1'
-
-
+    
+    
     ### identify the numeric feature
     before = max(reftok_idx-1,0)
     after = min(reftok_idx+1,len(reftok_list)-1)
-
+    
     if(before != reftok_idx and isinstance(getNumberFromText(reftok_list[before].getText()), (int))):
         feature_dict['feat_numeric'] = '1'
     elif(after != reftok_idx and isinstance(getNumberFromText(reftok_list[after].getText()), (int))):
@@ -258,7 +279,7 @@ def extract_prediction_features(reftok_list, reftok_idx, feature_dict) :
     ## identify bow feature
     start = max(reftok_idx-window,0)
     end = min(reftok_idx+(window+1),len(reftok_list)-1)
-
+    
     for r in range(start, end):
         if r != reftok_idx:
             num_check = getNumberFromText(reftok_list[r].getText())
@@ -270,10 +291,10 @@ def extract_prediction_features(reftok_list, reftok_idx, feature_dict) :
                 if(txt in feature_dict.keys()):
                     feature_dict[txt] = '1'
 
-    ## identify temp_self feature
+    ## identify temp_self feature    
     if reftok.isTemporal():
         feature_dict['feat_temp_self'] = '1'
-
+    
     ## identify temp_context within 3 words to either side of the target.
     start = max(reftok_idx-window,0)
     end = min(reftok_idx+(window+1),len(reftok_list)-1)
@@ -286,7 +307,7 @@ def extract_prediction_features(reftok_list, reftok_idx, feature_dict) :
     return(feature_dict)
 ######
 ## END Function
-######
+###### 
 
 
 ## Function that get the list of features to extract from the input training data matrix file.
@@ -304,11 +325,11 @@ def get_features(data_file):
     dict_keys = data_list[0].keys()
 
     dic = OrderedDict(zip(dict_keys, list(np.repeat('0',len(dict_keys)))))
-
+    
     return(dic)
 ######
 ## END Function
-######
+###### 
 
 ## Marks all the reference tokens that are identified as temporal.
 # @author Amy Olex
@@ -319,27 +340,169 @@ def markTemporal(refToks):
         #mark if numeric
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
         #mark if temporal
-        ref.setTemporal(unitTest(ref.getText()))
+        ref.setTemporal(temporalTest(ref.getText()))
+        
+    return refToks
+
+## Marks reference tokens that are dose-related (i.e., dose, dose units, conjunctions)
+# @author Neha Dil
+# @param refToks The list of reference tokens
+# @return modified list of reftoks
+
+def markDose(refToks):
+    i = 0
+    # Some tokens can be part of a dose phrase regardless of whether it on its own is a dose unit
+    # I use a flag to indicate whether the current token should be included as a dose unit
+    flag = False # indicates whether this word should counted as a dose unit regardless of its test results
+
+    while i < len(refToks):
+        if "diss" in refToks[i].getText() or "suspend" in refToks[i].getText() or "containing" in refToks[
+            i].getText():  # don't include solvents or solutes
+            opt1 = re.compile(r'\.$')
+            while (i < len(refToks) and "isomer" not in refToks[i].getText() and opt1.match(
+                    refToks[i].getText()) != None):
+                i = i + 1
+
+        if (i >= len(refToks)): break
+        if refToks[i].getText()=="and" or refToks[i].getText()=="or":
+            refToks[i].setConjunction(True)  # mark up conjunctions
+        if flag == True:  # means current token should be marked as dose unit
+            refToks[i].setDoseUnit(True)
+            refToks[i].setCombdose(False)
+            refToks[i].setNumeric(numericTest(refToks[i].getText(), refToks[i].getPos()))
+            flag=False
+        else:  # test if token is dose-related
+            temp, flag = unitTest(refToks[i].getText())
+            refToks[i].setDoseUnit(temp)
+            if flag != True:
+                temp2, flag= combdoseTest(refToks[i].getText())
+                if temp ==True:
+                    temp2=False
+            else:
+                temp2, fill = combdoseTest(refToks[i].getText())
+            refToks[i].setCombdose(temp2)
+            refToks[i].setNumeric(numericTest(refToks[i].getText(), refToks[i].getPos()))
+        i = i + 1
+
 
     return refToks
+
+
 ####
 #END_MODULE
 ####
+
+## Tests to see if token contains both dose and dose unit and if the next token should be counted as a part of the unit phrase
+# @author Neha Dil
+# @param tok The token string
+# @returnBoolean True if token contains both dose and dose unit, False if not, followed by Boolean True if next token is part of the unit phrase, False if not
+
+
+def combdoseTest(tok):  # may have to fix later
+    token = re.sub(r'[!"\#$&()*+,\-.:;\'<=>?@\[\\\]^_`{|}~]', '', tok)
+
+    units = ["μl",
+             "μtrms",
+             "mtrms",
+             "µTrms",
+             "g",
+             "μw",
+             "NP",
+             "μg",
+             "bpa"
+             "kg",
+             "bw",
+             "ml",
+             #"μg/105 cells",
+             #"μg/25 μL",
+             #"μg/gland",
+             "kg",
+             "µg",
+             "µt",
+             "mt",
+             "pfus",
+             #"particles/cm3",
+             "m",
+             "ml",
+             "q",
+             "fu",
+             "y",
+             "mg",
+             "l"
+             "μm",
+             "mg",
+             "kgbw•d",
+             "kgbw",
+             "u",
+             "ml",
+             "ac",
+             "fus",
+             "lm",
+             "db",
+             "spl",
+             "ddt",
+             "m3",
+             "kpa",
+             "trms",
+             "ng",
+             "μg",
+             "np",
+             "bwt",
+             "l",
+             "moi",
+             "CFU",
+             "Bq",
+             "Gy",
+             "μL",
+             "μM",
+             "ppm",
+             "ppb",
+             "µg",
+             "pfus",
+             "pfu",
+             "pb",
+             "pm",
+             "μg"
+             "ng",
+             "wlm"]
+
+    pattern = re.compile('^\d+')
+    try:
+        token = re.sub(r'^\d+', "", token)
+        if "/" in token:
+            temp = re.sub(r'[0-9]', '', token)
+            words = temp.split("/")
+            for word in words:
+                for unit in units:
+                    if word == unit and words[len(words) - 1] == "":
+                        return True, True
+
+                    elif word == unit:
+                        return True, False
+        else:
+            for unit in units:
+                if token == unit:
+                    return True, False
+        return False, False
+    except:
+        return False, False
+
 
 ## Tests to see if the token is a number.
 # @author Amy Olex
 # @param tok The token string
 # @return Boolean true if numeric, false otherwise
 def numericTest(tok, pos):
-
+    
     if pos == "CD":
         return True
     else:
-        #remove punctuation
-        tok = tok.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).strip()
-
-        #test for a number
-        #tok.strip(",.")
+        # remove punctuation
+        tok = tok.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).strip()
+        tok = re.sub("–", "", tok)
+        tok = re.sub(" ", "", tok)
+        # test for a number
+        # tok.strip(",.")
         val = getNumberFromText(tok)
         #print("Testing Number: Tok: " + tok + "  Val:" + str(val))
         if val is not None:
@@ -347,177 +510,296 @@ def numericTest(tok, pos):
         return False
 ####
 #END_MODULE
-####
+#### 
 
 
 ## Tests to see if the token is a temporal value.
 # @author Amy Olex
 # @param tok The token string
 # @return Boolean true if temporal, false otherwise
-def unitTest(tok):
-    tok =re.sub(r'[!"\#$%&()*+,\-.:;\'<=>?@\[\\\]^_`{|}~]', '', tok)
-    units = ["%", "μL",
-	"μT(rms)",
-	"μg",
-	"μL",
-	"μL solution/kg body weight",
-	"μL/30g",
-	"μL/day",
-	"μL/g",
-	"μM",
-	"μW/c2",
-	"μg",
-	"μg BPA/kg BW/day",
-	"μg in a volume of 100 μl",
-	"μg/ 25 g",
-	"μg/μL",
-	"μg/0.5 μl",
-	"μg/0.5 μl,",
-	"μg/100 ml",
-	"μg/105 cells",
-	"μg/25 μL",
-	"μg/cm2",
-	"μg/gland",
-	"μg/kg",
-	"μg/kg BW",
-	"μg/kg body weight (BW)/day",
-	"μg/m3",
-	"μg/mL",
-	"μg/ml",
-	"μg/mouse/day",
-	"μl",
-	"μl/naris",
-	"μm",
-	"q",
-	"q/g",
-	"q/m3",
-	"FU",
-	"y",
-	"y/min",
-	"U/kg",
-	"major promastigotes/ml",
-	"min",
-	"AC (minimum alveolar concentration)",
-	"P",
-	"FU",
-	"FUs",
-	"kg body weight",
-	"LM",
-	"colony forming units (CFU)",
-	"ecibel sound pressure level (dB SPL)",
-	"DDT mixture/L",
-	"L",
-	"dose/kg body weight",
-	"kg",
-	"m3",
-	"Hz",
-	"Pa",
-	"ilop,scal (kPa)",
-	"L",
-	"L/g body weight",
-	"L/g per day",
-	"L/kg",
-	"L/kg body weight",
-	"L/pup",
-	"M",
-	"T(rms)",
-	"edian chicken embryo infectious dose (EID50)",
-	"g",
-	"g D-glucose/g body weight",
-	"g DDT/kg body weight",
-	"g L-1",
-	"g TiO2/kg",
-	"g captopril/kg",
-	"g captopril/kg body weight",
-	"g per kg",
-	"g/mL",
-	"g/25 &L",
-	"g/Kg",
-	"g/Kg body weight",
-	"g/L",
-	"g/kg",
-	"g/kg BW",
-	"g/kg BW/day",
-	"g/kg b.wt.",
-	"g/kg body weight",
-	"g/kg body weight (bw)",
-	"g/kg body weight/day",
-	"g/kg bw",
-	"g/kg bw per day",
-	"g/kg, b.wt",
-	"kg/d",
-	"kg/day",
-	"g/kg/day)",
-	"g/kg/day;",
-	"g/m3",
-	"g/mL",
-	"g/m^3",
-	"g/ml",
-	"g/rat",
-	"gTiO2/kg body weight",
-	"l",
-	"l/10 g body weight",
-	"l/g body weight",
-	"l/kg body weight",
-	"l/kgbw",
-	"ultiplicity of infection (MOI)",
-	"M",
-	"anoparticles/cm3",
-	"g",
-	"g/&g",
-	"g/g",
-	"g/mL",
-	"g/ml",
-	"m2/cm3 surface area",
-	"articles/cm3",
-	"lague forming units (PFUs)",
-	"laque forming units (PFU)",
-	"pb",
-	"pm",
-	"g",
-	"l/g body weight",
-	"working level monts (WLM)"]
-
-    if(tok in units):
+def temporalTest(tok):
+    #remove punctuation
+    #tok = tok.translate(str.maketrans("", "", string.punctuation))
+    
+    #if the token has a dollar sign or percent sign it is not temporal
+    m = re.search('[#$%]', tok)
+    if m is not None:
+        return False
+    
+    #look for date patterns mm[/-]dd[/-]yyyy, mm[/-]dd[/-]yy, yyyy[/-]mm[/-]dd, yy[/-]mm[/-]dd
+    m = re.search('([0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4})', tok)
+    if m is not None:
+        return True
+    #looks for a string of 8 digits that could possibly be a date in the format 19980304 or 03041998 or 980304
+    m = re.search('([0-9]{4,8})', tok)
+    if m is not None:
+        if tt.has24HourTime(m.group(0)):
+            return True
+        if tt.hasDateOrTime(m.group(0)):
+            return True
+    
+    #look for time patterns hh:mm:ss
+    m = re.search('([0-9]{2}:[0-9]{2}:[0-9]{2})', tok)
+    if m is not None:
+        return True
+     
+   
+    if tt.hasTextMonth(tok):
+        return True
+    if tt.hasDayOfWeek(tok):
+        return True
+    if tt.hasPeriodInterval(tok):
+        return True
+    if tt.hasAMPM(tok):
+        return True
+    if tt.hasPartOfWeek(tok):
+        return True
+    if tt.hasSeasonOfYear(tok):
+        return True
+    if tt.hasPartOfDay(tok):
+        return True
+    if tt.hasTimeZone(tok):
+        return True
+    if tt.hasTempText(tok):
+        return True
+    if tt.hasModifierText(tok):
         return True
 
-    else:
-        return False
+## Tests to see if token is a unit and if the next token is a part of the unit phrase
+# @author Neha Dil
+# @param tok The token string
+# @return Boolean True if token is unit, False if not, followed by Boolean True if next token is part of the unit phrase, False if not
+def unitTest(tok):
+    tok = re.sub(r'[!"\#$&()*+,\-.:;\'<=>?@\[\\\]^_`{|}~]', '', tok)  # removes all punctuation except for "/"
+    tok = tok.lower()
+    units = ["μl",  # list of possible units
+             "μtrms",
+             "mtrms",
+             "g",
+             "μw",
+             "μg",
+             "CFU",
+             "bpa"
+             "kg",
+             "bw",
+             "ml",
+             #"μg/105 cells",
+             #"μg/25 μL",
+             #"μg/gland",
+             "kg",
+             "µg",
+             "µt",
+             "mt",
+             "pfus",
+             "NP",
+             #"particles/cm3",
+             "m",
+             "ml",
+             "q",
+             "fu",
+             "y",
+             "mg",
+             "l"
+             "μm",
+             "mg",
+             "kgbw•d",
+             "kgbw",
+             "u",
+             "ml",
+             "ac",
+             "fus",
+             "μM",
+             "μm",
+             "μg",
+             "lm",
+             "db",
+             "spl",
+             "ddt",
+             "m3",
+             "kpa",
+             "trms",
+             "ng"
+             "np",
+             "bwt",
+             "μL",
+             "l",
+             "Bq",
+             "Gy",
+             "moi",
+             "ppm",
+             "ppb",
+             "µg",
+             "pfus",
+             "pfu",
+             "pb",
+             "pm",
+             "μg"
+             "ng",
+             "wlm"]
+    #print(set("µg") & set(tok))
+    if "/" in tok and not re.match(r"^\d", tok):  # if there's a '/' in the unit, evaluate each piece individually
+        temp = re.sub(r'[0-9]', '', tok)  # remove numbers
+        words = temp.split("/")
+        for word in words:  # if one piece is a unit, the whole token is a unit
+            for unit in units:
+                if word == unit and words[len(words)-1]=="":  # if the last piece is empty, that means it was a number
+                    return True, True  # if the last piece was a number, then the next token should be a part of the unit phrase
+                elif word==unit:
+                    return True, False
+    else:  # if there's no "/" in the token, treat the token as a single piece
+        for unit in units:
+            if tok == unit:
+                return True, False
+    return False, False
+
+
 ####
 #END_MODULE
-####
+#### 
 
-## Takes in a Reference List that has had numeric and temporal tokens marked, and identifies all the
+## Takes in a Reference List that has had numeric and temporal tokens marked, and identifies all the 
 ## temporal phrases by finding consecutive temporal tokens.
 # @author Amy Olex
 # @param chroList The list of temporally marked reference tokens
 # @return A list of temporal phrases for parsing
 def getTemporalPhrases(chroList, doctime):
     #TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
+    id_counter = 0
     
-
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
-    counter = 1
-
+    inphrase = False
     for n in range(0,len(chroList)):
-        if (chroList[n].isNumeric()):
+        #if temporal start building a list 
+        #print("Filter Start Phrase: " + str(chroList[n]))   
+        if chroList[n].isTemporal():
+            #print("Is Temporal: " + str(chroList[n]))
+            if not inphrase:
+                inphrase = True
+            #in phrase, so add new element
             tmpPhrase.append(copy.copy(chroList[n]))
-        elif(chroList[n].isTemporal()):
-            tmpPhrase.append(copy.copy(chroList[n]))
+            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
+            # if this is the last token of the file, end the phrase.
+            if n == len(chroList)-1:
+                if inphrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
+            else:
+                s1, e1 = chroList[n].getSpan()
+                s2, e2 = chroList[n + 1].getSpan()
+                if e1 + 1 != s2 and inphrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
+                
+            
+        elif chroList[n].isNumeric():
+            #print("Not Temporal, but Numeric: " + str(chroList[n]))
+            #if the token has a dollar sign or percent sign do not count it as temporal
+            m = re.search('[#$%]', chroList[n].getText())
+            if m is None:
+                #print("No #$%: " + str(chroList[n]))
+                #check for the "million" text phrase
+                answer = next((m for m in ["million", "billion", "trillion"] if m in chroList[n].getText().lower()), None)
+                if answer is None:
+                    #print("No million/billion/trillion: " + str(chroList[n]))
+                    if not inphrase:
+                        inphrase = True
+                    #in phrase, so add new element
+                    tmpPhrase.append(copy.copy(chroList[n]))
+            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
+            # if this is the last token of the file, end the phrase.
+            if n == len(chroList)-1:
+                if inphrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
+            else:
+                s1, e1 = chroList[n].getSpan()
+                s2, e2 = chroList[n + 1].getSpan()
+                if e1 + 1 != s2 and inphrase:
+                    # print("has new line: " + str(chroList[n]))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
         else:
-            if(len(tmpPhrase) > 1 and tmpPhrase[len(tmpPhrase)-1].isTemporal()):
-                phrases.append(createTPEntity(tmpPhrase,counter,doctime))
-                counter = counter+1
-            tmpPhrase = []
+            #current element is not temporal, check to see if inphrase
+            #print("Not Temporal, or numeric " + str(chroList[n]))
+            if inphrase:
+                #set to False, add tmpPhrase as TimePhrase entitiy to phrases, then reset tmpPhrase
+                inphrase = False
+                #check to see if only a single element and element is numeric, then do not add.
+                if len(tmpPhrase) != 1:
+                    #print("multi element phrase ")
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                elif not tmpPhrase[0].isNumeric():
+                    #print("not numeric: " + str(chroList[n-1]))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                elif tmpPhrase[0].isNumeric() and tmpPhrase[0].isTemporal():
+                    #print("temporal and numeric: " + str(chroList[n-1]))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                else:
+                    #print("Element not added: " + str(chroList[n-1]))
+                    tmpPhrase = []
+        
+            
+    return phrases
+
+
+def getDosePhrases(chroList, doctime):
+    # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
+
+    phrases = []  # the empty phrases list of TimePhrase entities
+    dosePhrase = []  # the temporary phrases list.
+    counter = 1
+    for n in range(0, len(chroList)):
+        if (chroList[n].isCombdose()):
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+                dosePhrase = []
+            dosePhrase.append(copy.copy(chroList[n]))
+        elif (chroList[n].isNumeric()):
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+                dosePhrase = []
+
+            dosePhrase.append(copy.copy(chroList[n]))
+        elif (chroList[n].isDoseunit()):
+            if (len(dosePhrase) > 0):
+                dosePhrase.append(copy.copy(chroList[n]))
+        elif (chroList[n].isConjunction() and len(dosePhrase)>0):
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+            dosePhrase.append(copy.copy(chroList[n]))
+        else:
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+            dosePhrase = []
+    if (len(dosePhrase) >= 1):
+        if dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose():
+            phrases.append(createDPEntity(dosePhrase, counter, doctime))
 
     return phrases
 
 
-
 ####
 #END_MODULE
-####
+#### 
 
 
 ## Takes in a list of reference tokens identified as a temporal phrase and returns one TimePhraseEntity.
@@ -532,12 +814,35 @@ def createTPEntity(items, counter, doctime):
     text = ""
     for i in items:
         text = text + ' ' + i.getText()
-
+    
     return tp.TimePhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None, doctime=doctime)
+
+
+
+
+
+
+
+
+
+def createDPEntity(items, counter, doctime):
+    start_span, tmp = items[0].getSpan()
+    tmp, end_span = items[len(items) - 1].getSpan()
+    allspans = []
+    text = ""
+    for i in items:
+        allspans.append(i.getSpan())
+        if (len(text) > 0 and text[len(text) - 1] != "/"):
+            text += ' '
+        text += i.getText()
+
+    return dp.DosePhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None,
+                               tempvalue=None, doctime=doctime, allspans=allspans)
+
 
 ####
 #END_MODULE
-####
+####   
 
 
 ## Takes in a reference list of tokens, a start span and an end span
@@ -549,14 +854,23 @@ def createTPEntity(items, counter, doctime):
 def getRefIdx(ref_list, start_span, end_span):
     for i in range(0,len(ref_list)):
         if(overlap(ref_list[i].getSpan(),(start_span,end_span))):
-            return i
+            return i              
     return -1
-
+    
 ####
 #END_MODULE
-####
+####           
 
+## Identifies the local span of the serach_text in the input "text"
+# @author Amy Olex
+# @param text The text to be searched
+# @param search_text The text to search for.
+# @return The start index and end index of the search_text string.
+def calculateSpan(text, search_text):
+    try:
+        start_idx = text.index(search_text)
+        end_idx = start_idx + len(search_text)
+    except ValueError:
+        return None, None
 
-
-
-
+    return start_idx, end_idx
