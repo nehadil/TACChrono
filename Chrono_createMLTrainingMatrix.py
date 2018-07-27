@@ -109,7 +109,7 @@ def createMLTrainingMatrix(infiles, gold_folder, ext="", save = False, output = 
         
         
         ## mark all ref tokens if they are numeric or temporal
-        chroList = utils.markTemporal(my_refToks)
+        chroList = utils.markDose(my_refToks)
         
         
         ## import gold standard data
