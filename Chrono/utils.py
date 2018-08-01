@@ -354,10 +354,10 @@ def get_features(data_file):
 # @return modified list of reftoks
 def markNotable(refToks):
     for ref in refToks:
-        #mark if numeric
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
-        #mark if temporal
-        ref.setTemporal(temporalTest(ref.getText()))
+        boole, tID =(temporalTest(ref.getText()))
+        ref.setTemporal(boole)
+        ref.setTemporalType(tID)
         ref.setNumericRange(isNumericRange(ref.getText()))
         ref.setAcronym(isAcronym(ref.getText()))
     return refToks
@@ -367,8 +367,9 @@ def markNotable(refToks):
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
 def isAcronym(tok):
-    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm",];
-    tok = tok.translate(str.maketrans(string.punctuation, '')).strip()
+    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w"];
+    tok = re.sub('['+string.punctuation+']', '', tok).strip()
+    tok=tok.lower();
     return tok in acronyms
 
 ####

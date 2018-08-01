@@ -80,13 +80,14 @@ def hasDayOfWeek(text):
     
     #Note: I took out converting to lower case because the capitilazation adds information for day of week mentions.
     #remove all commas
-    text_norm = text.translate(str.maketrans("", "", ","))
+    text_norm = text.lower().strip()
+    text__norm = re.sub('[' + string.punctuation + ']', '', text_norm)
     #convert to list
     #text_list = text_norm.split(" ")
     
     #define my day lists
-    full_day = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
-    abbr_day = ["Mon.","Tues.","Wed.","Thurs.","Fri.","Sat.","Sun."]
+    full_day = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+    abbr_day = ["mon","tues","wed","thurs","fri","sat","sun", "mo", "tu", "we", "th", "fr", "sa", "su"]
 
     answer = next((m for m in full_day if m in text_norm), None)
     if answer is not None:
@@ -304,7 +305,7 @@ def hasPartOfDay(text):
     text_list = text_norm.split(" ")
     
     #define my part of day lists
-    partofday = ["morning","evening","afternoon","night","dawn","dusk","tonight","overnight","nights","mornings","evening","afternoons","noon","bedtime","midnight","eve"]
+    partofday = ["morning","breakfast","lunch", "dinner", "evening","afternoon","night","nights","mornings","evening","afternoons","noon","bedtime"]
     
     for t in text_list:
         answer = next((m for m in partofday if m in t), None)
