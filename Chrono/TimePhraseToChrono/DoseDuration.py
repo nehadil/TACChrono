@@ -17,45 +17,16 @@ from chronoML import ChronoKeras
 ###### More Issues: I created the training data incorrectly to remove the TimePhrase entity from consideration.  In order to classify from scratch we would need multiple classes: period, interval, everything else.  I only have a binary classifier here, so I need to narrow it down before trying to classify.
 def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     features = feats.copy()
-    print("TYPE:", type(s))
     ref_Sspan, ref_Espan = s.getSpan()
     #print("In buildPeriodInterval(), TimePhrase Text: " + s.getText())
     boo, val, idxstart, idxend, plural = hasDoseDuration(s)
     if boo:
-
-    # FIND terms that are always marked as calendar intervals!
-    if boo and re.search("yesterday|yesterdays|tomorrow|tomorrows|today|todays|daily|/min|/week", s.getText()):
-        abs_Sspan = ref_Sspan + idxstart
-        abs_Espan = ref_Sspan + idxend
-        my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
-                                                        end_span=abs_Espan, dose_type=val, number=None)
-        chrono_id = chrono_id + 1
-
-        if re.search("yesterday|yesterdays", s.getText()):
-
-            my_last_entity = chrono.ChronoLastOperator(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
-                                                   end_span=abs_Espan, repeating_interval=str(chrono_id - 1) + "entity")
-            chrono_id = chrono_id + 1
-            chrono_list.append(my_last_entity)
-
-        chrono_list.append(my_entity)
-
-    # FIND terms that are always marked as periods!
-    elif boo and val == "Unknown" :
-        abs_Sspan = ref_Sspan + idxstart
-        abs_Espan = ref_Sspan + idxend
-        my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
-                                                    end_span=abs_Espan, dose_type=val, number=None)
-        chrono_id = chrono_id + 1
-        chrono_list.append(my_entity)
-
-    elif boo:
         abs_Sspan = ref_Sspan + idxstart
         abs_Espan = ref_Sspan + idxend
 
         # get index of overlapping reference token
-        #ref_idx = -1
-        #for i in range(0,len(ref_list)):
+        # ref_idx = -1
+        # for i in range(0,len(ref_list)):
         #    if(utils.overlap(ref_list[i].getSpan(),(abs_Sspan,abs_Espan))):
         #        ref_idx = i
         #        break
@@ -68,26 +39,30 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
         # classify into period or interval
         if classifier[1] == "NN":
             my_class = ChronoKeras.keras_classify(classifier[0], np.array(list(my_features.values())))
-            #print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
+            # print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
         elif classifier[1] in ("SVM", "RF"):
             feat_array = [int(i) for i in my_features.values()]
             my_class = classifier[0].predict([feat_array])[0]
         else:
             my_class = classifier[0].classify(my_features)
-            #print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
+            # print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
 
         # if 1 then it is a period, if 0 then it is an interval
         if my_class == 1:
-            my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=getDoseDurationValue(val), number=None)
+            my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
+                                                        end_span=abs_Espan, dose_type=getDoseDurationValue(val),
+                                                        number=None)
             chrono_id = chrono_id + 1
             ### Check to see if this calendar interval has a "this" in front of it
-            prior_tok = ref_list[ref_idx-1].getText().lower()
-            if prior_tok.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))) == "this":
+            prior_tok = ref_list[ref_idx - 1].getText().lower()
+            if prior_tok.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))) == "this":
                 # add a This entitiy and link it to the interval.
                 start_span, end_span = re.search(prior_tok, "this").span(0)
-                prior_start, prior_end = ref_list[ref_idx-1].getSpan()
+                prior_start, prior_end = ref_list[ref_idx - 1].getSpan()
 
-                chrono_this_entity = chrono.ChronoThisOperator(entityID=str(chrono_id) + "entity", start_span=prior_start + start_span, end_span = prior_start + end_span)
+                chrono_this_entity = chrono.ChronoThisOperator(entityID=str(chrono_id) + "entity",
+                                                               start_span=prior_start + start_span,
+                                                               end_span=prior_start + end_span)
                 chrono_id = chrono_id + 1
                 chrono_this_entity.set_period(my_entity.get_id())
                 chrono_list.append(chrono_this_entity)
@@ -96,74 +71,90 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
                 # check for a Last Word
                 hasMod, mod_type, mod_start, mod_end = hasModifier(s)
 
-                if(hasMod):
+                if (hasMod):
                     if mod_type == "Next":
-                        chrono_list.append(chrono.ChronoNextOperator(entityID=str(chrono_id) + "entity", start_span=ref_Sspan+mod_start, end_span=ref_Sspan+mod_end, period=my_entity.get_id()))
+                        chrono_list.append(chrono.ChronoNextOperator(entityID=str(chrono_id) + "entity",
+                                                                     start_span=ref_Sspan + mod_start,
+                                                                     end_span=ref_Sspan + mod_end,
+                                                                     period=my_entity.get_id()))
                         chrono_id = chrono_id + 1
 
                     if mod_type == "Last":
-                        chrono_list.append(chrono.ChronoLastOperator(entityID=str(chrono_id) + "entity", start_span=ref_Sspan+mod_start, end_span=ref_Sspan+mod_end, period=my_entity.get_id(), semantics="Interval-Not-Included"))
+                        chrono_list.append(chrono.ChronoLastOperator(entityID=str(chrono_id) + "entity",
+                                                                     start_span=ref_Sspan + mod_start,
+                                                                     end_span=ref_Sspan + mod_end,
+                                                                     period=my_entity.get_id(),
+                                                                     semantics="Interval-Not-Included"))
                         chrono_id = chrono_id + 1
 
 
 
         else:
-            my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=val, number=None)
+            my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
+                                                        end_span=abs_Espan, dose_type=val, number=None)
             chrono_id = chrono_id + 1
             ### Check to see if this calendar interval has a "this" in front of it
-            prior_tok = ref_list[ref_idx-1].getText().lower()
-            if prior_tok.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))) == "this":
+            prior_tok = ref_list[ref_idx - 1].getText().lower()
+            if prior_tok.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))) == "this":
                 # add a This entitiy and link it to the interval.
                 start_span, end_span = re.search(prior_tok, "this").span(0)
-                prior_start, prior_end = ref_list[ref_idx-1].getSpan()
+                prior_start, prior_end = ref_list[ref_idx - 1].getSpan()
 
-                chrono_this_entity = chrono.ChronoThisOperator(entityID=str(chrono_id) + "entity", start_span=prior_start + start_span, end_span = prior_start + end_span)
+                chrono_this_entity = chrono.ChronoThisOperator(entityID=str(chrono_id) + "entity",
+                                                               start_span=prior_start + start_span,
+                                                               end_span=prior_start + end_span)
                 chrono_id = chrono_id + 1
                 chrono_this_entity.set_repeating_interval(my_entity.get_id())
                 chrono_list.append(chrono_this_entity)
             else:
                 # check for a Last Word
                 hasMod, mod_type, mod_start, mod_end = hasModifier(s)
-                if(hasMod):
+                if (hasMod):
                     if mod_type == "Next":
-                        chrono_list.append(chrono.ChronoNextOperator(entityID=str(chrono_id) + "entity", start_span=ref_Sspan+mod_start, end_span=ref_Sspan+mod_end, repeating_interval=my_entity.get_id()))
+                        chrono_list.append(chrono.ChronoNextOperator(entityID=str(chrono_id) + "entity",
+                                                                     start_span=ref_Sspan + mod_start,
+                                                                     end_span=ref_Sspan + mod_end,
+                                                                     repeating_interval=my_entity.get_id()))
                         chrono_id = chrono_id + 1
 
                     if mod_type == "Last":
-                        chrono_list.append(chrono.ChronoLastOperator(entityID=str(chrono_id) + "entity", start_span=ref_Sspan+mod_start, end_span=ref_Sspan+mod_end, repeating_interval=my_entity.get_id(), semantics="Interval-Not-Included"))
+                        chrono_list.append(chrono.ChronoLastOperator(entityID=str(chrono_id) + "entity",
+                                                                     start_span=ref_Sspan + mod_start,
+                                                                     end_span=ref_Sspan + mod_end,
+                                                                     repeating_interval=my_entity.get_id(),
+                                                                     semantics="Interval-Not-Included"))
                         chrono_id = chrono_id + 1
 
-
-
-        #check to see if it has a number associated with it.  We assume the number comes before the interval string
+        # check to see if it has a number associated with it.  We assume the number comes before the interval string
         if idxstart > 0:
             substr = s.getText()[0:idxstart]
             m = re.search('([0-9]{1,2})', substr)
-            if m is not None :
+            if m is not None:
                 num_val = m.group(0)
                 abs_Sspan = ref_Sspan + m.span(0)[0]
                 abs_Espan = ref_Sspan + m.span(0)[1]
 
-                my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, value=num_val)
+                my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
+                                                       end_span=abs_Espan, value=num_val)
                 chrono_id = chrono_id + 1
 
-                #add the number entity to the list
+                # add the number entity to the list
                 chrono_list.append(my_number_entity)
                 my_entity.set_number(my_number_entity.get_id())
-            #else search for a text number
+            # else search for a text number
             else:
                 texNumVal = utils.getNumberFromText(substr)
                 if texNumVal is not None:
-                    #create the number entity
-                    my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=ref_Sspan, end_span=ref_Sspan + (idxstart - 1), value=texNumVal)
+                    # create the number entity
+                    my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=ref_Sspan,
+                                                           end_span=ref_Sspan + (idxstart - 1), value=texNumVal)
                     chrono_id = chrono_id + 1
-                    #append to list
+                    # append to list
                     chrono_list.append(my_number_entity)
-                    #link to interval entity
+                    # link to interval entity
                     my_entity.set_number(my_number_entity.get_id())
 
         chrono_list.append(my_entity)
-
     else:
         boo2, val, idxstart, idxend, numstr = hasEmbeddedPeriodInterval(s)
         if(boo2):
@@ -193,7 +184,7 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
                 my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=getDoseDurationValue(val), number=None)
                 chrono_id = chrono_id + 1
             else:
-                my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=val)
+                my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=val, number=None)
                 chrono_id = chrono_id + 1
 
             #Extract the number and identify the span of numstr
@@ -232,6 +223,10 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
 
     return chrono_list, chrono_id
 
+    # FIND terms that are always marked as calendar intervals!
+
+
+
 ## Takes in a TimePhrase entity and identifies if it has any period or calendar interval phrases like "week" or "days"
 # @author Amy Olex
 # @param tpentity The TimePhrase entity object being parsed
@@ -242,21 +237,19 @@ def hasDoseDuration(tpentity):
     text = tpentity.getText().lower()
     #print("In hasPeriodInterval text: ", text)
 
-    reg = re.search("date/time", text)  ##we don't want to annotate these specific types of mentions
-    if reg:
+    reg = re.search("after$", text)  ##we don't want to annotate these specific types of mentions
+    if text != "prn" and (reg ):
         #print("Found date/time, returning FALSE")
         return False, None, None, None, None
-
     # remove all punctuation
     text_norm = text.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).strip()
     # convert to list
-    print("HERE IT IS:", text_norm)
     text_list = text_norm.split(" ")
     #print("text list: " + str(text_list))
 
     # define my period lists
-    terms = ["day", "week","daily", "weekly", "monthly", "minute", "second", "hour", "hourly",
-             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins"]  #, "date"]
+    terms = ["day", "week","minute", "second", "hour",
+             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins","prn"]  #, "date"]
 
     # figure out if any of the tokens in the text_list are also in the interval list
     intersect = list(set(text_list) & set(terms))
@@ -282,6 +275,8 @@ def hasDoseDuration(tpentity):
             return True, "Second", start_idx, end_idx, False
         elif this_term in ["hour", "hourly", "hours", "hr", "hrs"]:
             return True, "Hour", start_idx, end_idx, False
+        elif this_term in ["prn"]:
+            return True, "PRN", start_idx, end_idx, False
         else:
             return False, None, None, None, None
 
@@ -329,10 +324,9 @@ def hasEmbeddedPeriodInterval(tpentity):
     text_list = text_norm.split(" ")
 
     # define my period/interval term lists
-    terms = ["decades", "decade", "yesterday", "yesterdays", "today", "todays", "tomorrow", "tomorrows", "day", "week",
-             "month", "year", "daily", "weekly", "monthly", "yearly", "century", "minute", "second", "hour", "hourly",
-             "days", "weeks", "months", "years", "centuries", "century", "minutes", "seconds", "hours", "time", "shortly",
-             "soon", "briefly", "awhile", "future", "lately", "annual", "hr", "hrs", "min", "mins", "quarter"] #, "date"]
+    terms = ["day", "week",
+             "month", "minute", "second", "hour",
+             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins", "prn"] #, "date"]
 
     ## if the term does not exist by itself it may be a substring. Go through each word in the TimePhrase string and see if a substring matches.
     for t in text_list:
@@ -349,28 +343,21 @@ def hasEmbeddedPeriodInterval(tpentity):
                     # if it is a number then test to figure out what sub2 is.
                     this_term = sub2
                     start_idx, end_idx = calculateSpan(text_norm, this_term)
-                    if this_term in ["day", "daily", "days", "yesterday", "tomorrow", "yesterdays", "tomorrows",
-                                     "today", "todays"]:
+                    if this_term in ["day", "daily", "days"]:
                         #print("ACK! Found an Embedded Day")
                         return True, "Day", start_idx, end_idx, sub1
                     elif this_term in ["week", "weekly", "weeks"]:
                         return True, "Week", start_idx, end_idx, sub1
                     elif this_term in ["month", "monthly", "months"]:
                         return True, "Month", start_idx, end_idx, sub1
-                    elif this_term in ["year", "yearly", "years"]:
-                        return True, "Year", start_idx, end_idx, sub1
-                    elif this_term in ["century", "centuries"]:
-                        return True, "Century", start_idx, end_idx, sub1
-                    elif this_term in ["decade", "decades"]:
-                        return True, "Decade", start_idx, end_idx, sub1
                     elif this_term in ["minute", "minutes"]:
                         return True, "Minute", start_idx, end_idx, sub1
                     elif this_term in ["second", "seconds"]:
                         return True, "Second", start_idx, end_idx, sub1
                     elif this_term in ["hour", "hourly", "hours"]:
                         return True, "Hour", start_idx, end_idx, sub1
-                    elif this_term in ["time", "shortly", "soon", "briefly", "awhile", "future", "lately"]:
-                        return True, "Unknown", start_idx, end_idx, sub1
+                    elif this_term in ["prn"]:
+                        return True, "PRN", start_idx, end_idx, sub1
 
                 else:
                     return False, None, None, None, None
@@ -387,12 +374,6 @@ def getDoseDurationValue(val):
         return("Weeks")
     elif val == "Month":
         return("Months")
-    elif val == "Year":
-        return("Years")
-    elif val == "Century":
-        return("Centuries")
-    elif val == "Decade":
-        return("Decades")
     elif val == "Hour":
         return("Hours")
     elif val == "Minute":
