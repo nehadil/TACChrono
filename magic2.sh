@@ -1,5 +1,5 @@
 #!bin/bash
-cd /home/jeff/TAC_SRIE_2018_Task1_Training_Annotation
+cd /home/jeff/Documents/track2-training_data_1/
 for f in *.txt
 do
 	name=${f%.*}

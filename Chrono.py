@@ -182,7 +182,7 @@ if __name__ == "__main__":
                                                                                         my_chrono_ID_counter, chroList,
                                                                                         (classifier, args.m), feats,
                                                                                         doctime)
-        #chrono_master_list = DosePhrase_to_Chrono.buildChronoList(dosePhrases)
+        #chrono_master_list.append(DosePhrase_to_Chrono.buildChronoList(dosePhrases))
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])

@@ -124,7 +124,28 @@ def hasPeriodInterval(text):
         return True
     else:
         return False
-    
+
+
+def hasDoseDuration(text):
+    # convert to all lower
+    text_lower = text.lower()
+    # remove all punctuation
+    text_norm = text_lower.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation)))
+    # convert to list
+    text_list = text_norm.split(" ")
+
+    # define my period lists
+    terms = ["day", "week", "month",
+             "daily", "weekly", "monthly", "minute", "second", "hour", "hourly", "days",
+             "weeks", "months", "minutes", "seconds", "hours", "prn"]  # ,"recently"]
+    ## possibly add in abbreviations like yr, sec, min, etc.
+
+    answer = next((m for m in terms if m in text_norm), None)
+    if answer is not None:
+        return True
+    else:
+        return False
+
 ####
 #END_MODULE
 ####

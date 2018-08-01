@@ -65,9 +65,7 @@ import copy
 def getWhitespaceTokens(file_path):
     file = open(file_path, "r")
     text = file.read()
-    ## Testing the replacement of all "=" signs by spaces before tokenizing.
-    text = text.translate(str.maketrans("=", ' '))
-    
+    #text = text.replace("\n", "\n\n")
     span_generator = WhitespaceTokenizer().span_tokenize(text)
     spans = [span for span in span_generator]
     tokenized_text = WhitespaceTokenizer().tokenize(text)
@@ -90,12 +88,18 @@ def getDocTime(file_path):
 # @param chrono_list The list of Chrono objects needed to be written in the file.
 # @param outfile A string containing the output file location and name.
 def write_xml(chrono_list, outfile):
-    fout = open(outfile + ".completed.xml", "w")
-    fout.write("<data>\n<annotations>\n")
-    for c in chrono_list :
-        fout.write(str(c.print_xml()))
-    
-    fout.write("\n</annotations>\n</data>")
+    fout = open(outfile + ".ann", "w")
+    for c in chrono_list:
+        try:
+            fout.write(str(c.print_xml()) + "\n")
+        except:
+            try:
+                fout.write(str(c[0].print_xml()+"\n"))
+            except:
+                print("MISSION FAILED")
+                print(c[0])
+                print(c[1])
+
     fout.close()
  ####
  #END_MODULE
@@ -547,6 +551,8 @@ def temporalTest(tok):
     if tt.hasTextMonth(tok):
         return True
     if tt.hasDayOfWeek(tok):
+        return True
+    if tt.hasDoseDuration(tok):
         return True
     if tt.hasPeriodInterval(tok):
         return True
