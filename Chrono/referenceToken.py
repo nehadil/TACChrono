@@ -45,11 +45,12 @@ import string
 # @param end_span The location of the last character
 # @param pos The part of speech assigned to this token
 # @param temporal A boolean indicating if this token contains any temporal components
+# @param numericRange A boolean indicating if this token is a numeric range (0-12)
 # @param sent_boundary A boolean indicating if this token is at the end of a sentence or line
 class refToken :
 
     ## The constructor
-    def __init__(self, id, text, start_span=None, end_span=None, pos=None, temporal=None, numeric=None, sent_boundary=None) :
+    def __init__(self, id, text, numericRange=None,start_span=None, end_span=None, pos=None, temporal=None, numeric=None, sent_boundary=None) :
         self.id = id
         self.text = text
         self.start_span = start_span
@@ -58,6 +59,7 @@ class refToken :
         self.temporal = temporal
         self.numeric = numeric
         self.sent_boundary = sent_boundary
+        self.numericRange = numericRange
 
     ## Defines how to convert a refToken to string
     def __str__(self) :
@@ -76,7 +78,11 @@ class refToken :
     #  @param id The ID to set it to
     def setID(self, id) :
         self.id = id
-        
+    ## Sets whether or not the current refTok represents a numeric range (8-10), etc for Frequency checking
+    #  @param b The boolean value to set isNumericRange to
+    def setNumericRange(self, b) :
+        self.numericRange=b
+
     ## Sets the entity's text
     #  @param text The text to set it to
     def setText(self, text) :
@@ -109,13 +115,13 @@ class refToken :
     def setSentBoundary(self, num) :
         self.sent_boundary = num
 
-
     #### Methods to GET properties ####
     
     ## Gets the entity's ID
     def getID(self) :
         return(self.id)
-        
+    def isNumericRange(self):
+        return self.isNumeric
     ## Gets the entity's text
     def getText(self) :
         return(self.text)

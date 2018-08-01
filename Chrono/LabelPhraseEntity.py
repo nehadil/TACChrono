@@ -43,22 +43,21 @@ import json
 # @param end_span The location of the last character
 # @param type The type of temporal entity parsed by TimePhrase.  Can be one of DATE, TIME, SET, DURATION, RANGE...I think!
 # @param value The normalized date/time value from TimePhrase.
-class TimePhraseEntity :
+class LabelPhraseEntity :
     
     ## The constructor
-    def __init__(self, id, text, start_span, end_span, temptype, tempvalue, doctime) :
+    def __init__(self, id, text, start_span, end_span, temptype, tempvalue) :
         self.id = id
         self.text = text
         self.start_span = start_span
         self.end_span = end_span
         self.temptype = temptype
         self.tempvalue = tempvalue
-        self.doctime = doctime
-      
-    ## String representation    
+
+    # String representation
     def __str__(self) :
         span_str = "" if self.start_span is None else (" <" + str(self.start_span) + "," + str(self.end_span) + "> ")
-        return(str(self.id) + " " + str(self.text) + span_str + str(self.temptype) + " " + str(self.tempvalue) + " " + str(self.doctime))
+        return(str(self.id) + " " + str(self.text) + span_str + str(self.temptype) + " " + str(self.tempvalue) + " ")
     
 
     #### Methods to SET properties ###
@@ -89,10 +88,7 @@ class TimePhraseEntity :
     #  @param tempvalue The entities normalized TimePhrase value
     def setValue(self, tempvalue) :
         self.tempvalue = tempvalue
-    
-    def setDoctime(self, doctime) :
-        self.doctime = doctime
-        
+
     #### Methods to GET properties ####
     
     ## Gets the entity's ID
@@ -115,19 +111,17 @@ class TimePhraseEntity :
     def getValue(self) :
         return(self.tempvalue)
     
-    ## Gets the entity's doctime
-    def getDoctime(self):
-        return(self.doctime)
+
 
 ## Function to convert json output of TimePhrase to a list of TimePhraseEntities
 # @author Amy Olex
 # @param tempt_json The TimePhrase parsed json string (required)
 # @param id_counter The number the ID counter should start at. Default is 0.
 # @return A list of TimePhraseEntity objects in the same order as the input json list.
-def import_TimePhrase(tempt_json, doctime = None, id_counter=0) :
+def import_TimePhrase(tempt_json, id_counter=0) :
     temp_list = []
     for j in tempt_json:
-        temp_list.append(TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime))
+        temp_list.append(LabelPhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value']))
         id_counter = id_counter +1
         
     return temp_list

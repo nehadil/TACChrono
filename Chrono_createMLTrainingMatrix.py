@@ -58,7 +58,7 @@ from nltk.stem.snowball import SnowballStemmer
 from copy import deepcopy
 from Chrono import chronoEntities
 from Chrono import utils
-from Chrono import TimePhraseEntity
+from Chrono import LabelPhraseEntity
 from Chrono import referenceToken
 
 debug = False
@@ -98,11 +98,7 @@ def createMLTrainingMatrix(infiles, gold_folder, ext="", save = False, output = 
     ## Loop through each file and parse
     for f in range(0,len(infiles)) :
         print("ML Parsing "+ infiles[f] +" ...")
-        
-        ## parse out the doctime
-        doctime = utils.getDocTime(infiles[f] + ".dct")
-        if(debug) : print(doctime)
-        
+
         ## parse out reference tokens
         text, tokens, spans, tags = utils.getWhitespaceTokens(infiles[f]+ext)
         my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags)
@@ -136,7 +132,7 @@ def createMLTrainingMatrix(infiles, gold_folder, ext="", save = False, output = 
                 ref_s, ref_e = reftok.getSpan()
                 # loop through each gold instance and find the one that overlaps with the current reftok.
                 for g in gold_list:
-                   # print(str(g))
+
                     if utils.overlap([ref_s,ref_e], [int(g['start']),int(g['end'])] ):
                         this_obs = {}
                         # if the gold token overlaps with the current reftok we need to extract the features from the reftok and add it to the list
@@ -144,7 +140,7 @@ def createMLTrainingMatrix(infiles, gold_folder, ext="", save = False, output = 
                         if(save):
                             outfile.write("\nPrevious Token: " + str(chroList[max(r-1, 0)]))
                             outfile.write("\nTarget Token: "+str(reftok))
-                            #print("Length: "+ str(len(my_refToks)) + "Last: "+str(min(r+1, len(my_refToks))))
+
                             outfile.write("\nNext Token: " + str(chroList[min(r+1, len(my_refToks)-1)])+"\n")
                         
                         ### Identify Temporal features
@@ -215,7 +211,7 @@ def extract_stem_feature(reftok, obs_dict, obs_list):
             return(obs_list, obs_dict)
 
     stemmer = SnowballStemmer("english")
-    #print(stemmer.stem(reftok.getText().lower()))
+
     obs_dict.update({stemmer.stem(reftok.getText().lower()): 0})
     obs_list.update({stemmer.stem(reftok.getText().lower()): 1})
     
@@ -276,7 +272,7 @@ def extract_bow_features(reftok_list, reftok_idx, window, obs_dict, obs_list):
                 #this_bow[reftok_list[r].getText()] = 1
                 obs_list.update({reftok_list[r].getText(): 1})
                 obs_dict.update({reftok_list[r].getText(): 0})
-    #print(str(this_bow))
+
     return(obs_list, obs_dict)
 ######
 ## END Function

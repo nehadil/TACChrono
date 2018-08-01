@@ -68,7 +68,7 @@ def hasDayOfMonth(tpentity):
 
                 # check to see if the first two digits are less than or equal to 12.  If greater then we have the format yy/mm/dd
                 elif int(twodigitstart[1]) <= 12:
-                    # print("found 2digit start mm-dd-yy: " + str(twodigitstart.span(2)[0]+text_start) + " : " + str(twodigitstart.group(2)))
+
                     # assume mm/dd/yy
                     start_idx, end_idx = Chrono.utils.calculateSpan(text, twodigitstart[2])
                     return True, twodigitstart[2], text_start + start_idx, text_start + end_idx

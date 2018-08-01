@@ -59,7 +59,7 @@ def buildYear(s, chrono_id, chrono_list, flags):
                 # Check for Hour in same element
                 bHour, textHour, startSpanHour, endSpanHour = hasHourOfDay(s)
                 if bHour and not flags["hour"]:
-                    # print("Found Hour in Year")
+
                     flags["hour"] = True
                     ref_StartSpan, ref_EndSpan = s.getSpan()
                     abs_StartSpanHour = ref_StartSpan + startSpanHour
@@ -229,7 +229,7 @@ def build2DigitYear(s, chrono_id, chrono_list, flags):
                 # Check for Hour in same element
                 bHour, textHour, startSpanHour, endSpanHour = hasHourOfDay(s)
                 if bHour and not flags["hour"]:
-                    # print("Found Hour in 2-digit year")
+
                     flags["hour"] = True
                     ref_StartSpan, ref_EndSpan = s.getSpan()
                     abs_StartSpanHour = ref_StartSpan + startSpanHour
@@ -387,7 +387,7 @@ def hasMonthOfYear(tpentity):
                 if int(twodigitstart[1]) <= 12:
                     # assume mm/dd/yy
                     start_idx, end_idx = Chrono.utils.calculateSpan(text, twodigitstart[1])  # twodigitstart.span(1)  #
-                    # print("found 2digit start mm-dd-yy: " + str(twodigitstart.span(1)[0]+text_start) + " : " + str(twodigitstart.group(1)))
+
                     ##### Trying to DEBUG string formats like AP-JN-08-16-90 ##########
                     return True, twodigitstart[1], text_start + start_idx, text_start + end_idx
                 elif int(twodigitstart[1]) > 12:

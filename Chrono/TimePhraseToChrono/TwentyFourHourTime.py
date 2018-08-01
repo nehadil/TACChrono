@@ -19,7 +19,7 @@ def build24HourTime(s, chrono_id, chrono_list, flags):
             hour = int(val[0:2])
             minute = int(val[2:4])
         except ValueError:
-            # print("Skipping, not a 24hour time")
+
             return chrono_list, chrono_id, flags
             # hour = w2n.number_formation(val[0:2])
             # minute = w2n.word_to_num(val[2:4])
@@ -42,7 +42,7 @@ def build24HourTime(s, chrono_id, chrono_list, flags):
 
         ## build minute entity
         min_entity = chrono.ChronoMinuteOfHourEntity(entityID=str(chrono_id) + "entity", start_span=ref_Sspan + idxstart + 2, end_span=ref_Sspan + idxstart + 4, value=minute)
-        # print("24Minute Value Added: " + str(min_entity.get_value()))
+
         chrono_list.append(min_entity)
         chrono_id = chrono_id + 1
 
@@ -50,7 +50,7 @@ def build24HourTime(s, chrono_id, chrono_list, flags):
         #     hour_entity = chrono.ChronoHourOfDayEntity(entityID=str(chrono_id) + "entity", start_span=ref_Sspan + idxstart, end_span=ref_Sspan + idxstart + 2, value=hour, time_zone=my_tz_entity.get_id())
         # else:
         hour_entity = chrono.ChronoHourOfDayEntity(entityID=str(chrono_id) + "entity", start_span=ref_Sspan + idxstart, end_span=ref_Sspan + idxstart + 2, value=hour)
-        # print("24Hour Value Added: " + str(hour_entity.get_value()))
+
         hour_entity.set_sub_interval(min_entity.get_id())
         chrono_list.append(hour_entity)
         chrono_id = chrono_id + 1
@@ -90,7 +90,7 @@ def has24HourTime(tpentity, flags):
                             return True, text, start_idx, end_idx
             elif tz_format is not None:
                 time = tz_format[0]
-                # print("THIS TIME: {}".format(time))
+
                 hour = utils.getNumberFromText(time[0:2])
                 minute = utils.getNumberFromText(time[2:4])
                 # if (minute > 60) or (hour > 24):
