@@ -68,51 +68,9 @@ def buildChronoList(TimePhraseList, chrono_id, ref_list, PIclassifier, PIfeature
         
         # this is the new chrono time flags so we don't duplicate effort.  Will ned to eventually re-write this flow.
         # The flags are in the order: [loneDigitYear, month, day, hour, minute, second]
-        chrono_time_flags = {"loneDigitYear":False, "month":False, "day":False, "hour":False, "minute":False, "second":False, "fourdigityear":False, "twodigityear":False}
+        chrono_time_flags = {}
         
-        #Parse out Year function
-        chrono_tmp_list, chrono_id, chrono_time_flags = MonthYear.buildYear(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out Two-Digit Year 
-        chrono_tmp_list, chrono_id, chrono_time_flags = MonthYear.build2DigitYear(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out Month-of-Year
-        chrono_tmp_list, chrono_id, chrono_time_flags = MonthYear.buildMonthOfYear(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out Day-of-Month
-        chrono_tmp_list, chrono_id, chrono_time_flags = DayOfMonth.buildDayOfMonth(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out HourOfDay
-        chrono_tmp_list, chrono_id, chrono_time_flags = HourOfDay.buildHourOfDay(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out MinuteOfHour
-        chrono_tmp_list, chrono_id, chrono_time_flags = MinuteOfHour.buildMinuteOfHour(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out SecondOfMinute
-        chrono_tmp_list, chrono_id, chrono_time_flags = SecondOfMinute.buildSecondOfMinute(s, chrono_id, chrono_tmp_list, chrono_time_flags)
 
-        
-        #Parse modifier text
-        chrono_tmp_list, chrono_id = Modifier.buildModifierText(s, chrono_id, chrono_tmp_list)
-
-        #call non-standard formatting temporal phrases
-        chrono_tmp_list, chrono_id, chrono_time_flags = NumericDate.buildNumericDate(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        chrono_tmp_list, chrono_id, chrono_time_flags = TwentyFourHourTime.build24HourTime(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        
-        chrono_tmp_list, chrono_id = DayOfWeek.buildDayOfWeek(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id, chrono_time_flags = TextMonthAndDay.buildTextMonthAndDay(s, chrono_id, chrono_tmp_list, chrono_time_flags, dct, ref_list)
-        chrono_tmp_list, chrono_id = AMPM.buildAMPM(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        chrono_tmp_list, chrono_id = PartOfDay.buildPartOfDay(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = PartOfWeek.buildPartOfWeek(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = Season.buildSeasonOfYear(s, chrono_id, chrono_tmp_list, ref_list)
-        chrono_tmp_list, chrono_id = PeriodInterval.buildPeriodInterval(s, chrono_id, chrono_tmp_list, ref_list, PIclassifier, PIfeatures)
-        chrono_tmp_list, chrono_id = TextYear.buildTextYear(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = This.buildThis(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = BeforeAfter.buildBeforeAfter(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = NthFromStart.buildNthFromStart(s, chrono_id, chrono_tmp_list, ref_list)
-        chrono_tmp_list, chrono_id = TimeZone.buildTimeZone(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = Last.buildLast(s, chrono_id, chrono_tmp_list)
-        
-    #    print("XXXXXXXXX")
-    #    print(s)
-    #    for e in chrono_tmp_list:
-    #        print(e)
-        
-        
         tmplist, chrono_id = buildSubIntervals(chrono_tmp_list, chrono_id, dct, ref_list)
         chrono_list = chrono_list+tmplist
         #Going to incorporate in future builds
@@ -150,19 +108,19 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
     
     entity_count = 0
    
-    #print("in Build Subintervals") 
+
     ## loop through all entities and pull out the approriate IDs
     for e in range(0,len(chrono_list)):
-        #print(chrono_list[e].get_id())
+
         e_type = chrono_list[e].get_type()
-        #print("E-type: " + e_type)
+
         
         if e_type == "Two-Digit-Year" or e_type == "Year":
             year = e
             entity_count = entity_count + 1
-            # print("YEAR VALUE: " + str(chrono_list[e].get_value()))
+
         elif e_type == "Month-Of-Year":
-            # print("FOUND Month")
+
             month = e
             entity_count = entity_count + 1
         elif e_type == "Day-Of-Month":
@@ -260,14 +218,14 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
                             #past tense so put as a last
                             chrono_list.append(chrono.ChronoLastOperator(entityID=str(chrono_id) + "entity", start_span=mStart, end_span=mEnd, repeating_interval=chrono_list[dayweek].get_id()))
                             chrono_id = chrono_id + 1
-                            # print("FOUND DAYWEEK LAST")
+
                         elif ref_list[ref].getPos() in ["VB","VBG","VBP","VBZ"]:
                             #present tense so put as a next
                             chrono_list.append(chrono.ChronoNextOperator(entityID=str(chrono_id) + "entity", start_span=mStart, end_span=mEnd, repeating_interval=chrono_list[dayweek].get_id()))
                             chrono_id = chrono_id + 1  
-                            # print("FOUND DAYWEEK NEXT")
+
                         vb = True
-                    # print("Ref Tok: " + str(ref))
+
                     ref-=1
                 
                 '''
@@ -292,7 +250,7 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
     if second is not None and minute is not None:
         chrono_list[minute].set_sub_interval(chrono_list[second].get_id())
     if minute is not None and hour is not None:
-        #print("Linking entities " + str(minute) + " and " + str(hour))
+
         chrono_list[hour].set_sub_interval(chrono_list[minute].get_id())
     if hour is not None and day is not None:
         chrono_list[day].set_sub_interval(chrono_list[hour].get_id())
@@ -307,10 +265,10 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
     if day is not None and daypart is not None and hour is None:
         chrono_list[day].set_sub_interval(chrono_list[daypart].get_id())
     if nth is not None and period is not None:
-        # print("Adding period sub-interval")
+
         chrono_list[nth].set_period(chrono_list[period].get_id())
     elif nth is not None and interval is not None:
-        # print("Adding interval sub-interval")
+
         chrono_list[nth].set_repeating_interval(chrono_list[interval].get_id())
     
     
@@ -326,17 +284,17 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
         chrono_list[hour].set_ampm(chrono_list[ampm].get_id())
     elif ampm is not None and hour is None:
         # Delete the AMPM entity if no hour associated with it.
-        #print("Deleting AMPM")
+
         del chrono_list[ampm]
         reindex = True
 
     ## I know I need to reindex here, but I honestly forgot exactly why.
     if reindex:
         for e in range(0,len(chrono_list)):
-            #print(chrono_list[e].get_id())
+
             e_type = chrono_list[e].get_type()
             if e_type == "Time-Zone":
-                #print("Reindexing Time Zone Value: " + str(chrono_list[e]))
+
                 tz = e
                     
         
@@ -344,7 +302,7 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
         chrono_list[hour].set_time_zone(chrono_list[tz].get_id())
     elif tz is not None and hour is None:
         # Delete the tz entity if there is no hour to link it to.  Not sure if this will work for all cases.
-        #print("Deleting TimeZone")
+
         del chrono_list[tz]
 
     # Link modifiers
@@ -354,7 +312,7 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
         chrono_list[interval].set_modifier(chrono_list[modifier].get_id())
     elif modifier is not None and period is None and interval is None:
         # Delete the modifier entity if there is no period or interval to link it to.  Not sure if this will work for all cases.
-        #print("Deleting Modifier")
+
         del chrono_list[modifier]
     
     
@@ -363,7 +321,7 @@ def buildSubIntervals(chrono_list, chrono_id, dct, ref_list):
     ##### I think implementing a machine learning method here may help.
     #elif nth is not None:
         # if the nthFromStart does not have a corresponding interval we should remove it from the list.
-        #print("REMOVING NthFromStart: " + str(chrono_list[nth]))
+
         #del chrono_list[nth]
     
     return chrono_list, chrono_id

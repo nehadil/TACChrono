@@ -19,7 +19,7 @@ def buildPeriodInterval(s, chrono_id, chrono_list, ref_list, classifier, feats):
 
     features = feats.copy()
     ref_Sspan, ref_Espan = s.getSpan()
-    #print("In buildPeriodInterval(), TimePhrase Text: " + s.getText())
+
     boo, val, idxstart, idxend, plural = hasPeriodInterval(s)
 
     # FIND terms that are always marked as calendar intervals!
@@ -67,13 +67,13 @@ def buildPeriodInterval(s, chrono_id, chrono_list, ref_list, classifier, feats):
         # classify into period or interval
         if classifier[1] == "NN":
             my_class = ChronoKeras.keras_classify(classifier[0], np.array(list(my_features.values())))
-            #print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
+
         elif classifier[1] in ("SVM", "RF"):
             feat_array = [int(i) for i in my_features.values()]
             my_class = classifier[0].predict([feat_array])[0]
         else:
             my_class = classifier[0].classify(my_features)
-            #print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
+
 
         # if 1 then it is a period, if 0 then it is an interval
         if my_class == 1:
@@ -182,10 +182,10 @@ def buildPeriodInterval(s, chrono_id, chrono_list, ref_list, classifier, feats):
             # classify into period or interval
             if(classifier[1] == "NN"):
                 my_class = ChronoKeras.keras_classify(classifier[0], np.array(list(my_features.values())))
-                #print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
+
             else:
                 my_class = classifier[0].classify(my_features)
-                #print("Class: " + str(my_class) + " : Start: " + str(abs_Sspan) + " : End: "+ str(abs_Espan))
+
 
              # if 1 then it is a period, if 0 then it is an interval
             if(my_class == 1):
@@ -239,18 +239,18 @@ def hasPeriodInterval(tpentity):
     # convert to all lower
     # text_lower = tpentity.getText().lower()
     text = tpentity.getText().lower()
-    #print("In hasPeriodInterval text: ", text)
+
 
     reg = re.search("date/time", text)  ##we don't want to annotate these specific types of mentions
     if reg:
-        #print("Found date/time, returning FALSE")
+
         return False, None, None, None, None
 
     # remove all punctuation
     text_norm = text.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).strip()
     # convert to list
     text_list = text_norm.split(" ")
-    #print("text list: " + str(text_list))
+
 
     # define my period lists
     terms = ["decades", "decade", "yesterday", "yesterdays", "today", "todays", "tomorrow", "tomorrows", "day", "week",
@@ -261,7 +261,7 @@ def hasPeriodInterval(tpentity):
     # figure out if any of the tokens in the text_list are also in the interval list
     intersect = list(set(text_list) & set(terms))
 
-    #print("My intersection: " + str(intersect))
+
 
     # only proceed if the intersect list has a length of 1 or more.
     # For this method I'm assuming it will only be a length of 1, if it is not then we don't know what to do with it.
@@ -303,7 +303,7 @@ def hasPeriodInterval(tpentity):
                 start_idx, end_idx = calculateSpan(text_norm, this_term)
 
                 if this_term in ["daily", "days"]:
-                    #print("Returning a Daily")
+
                     return True, "Day", start_idx, end_idx, False
                 elif this_term in ["weekly", "weeks"]:
                     return True, "Week", start_idx, end_idx, False
@@ -358,7 +358,7 @@ def hasEmbeddedPeriodInterval(tpentity):
                     start_idx, end_idx = calculateSpan(text_norm, this_term)
                     if this_term in ["day", "daily", "days", "yesterday", "tomorrow", "yesterdays", "tomorrows",
                                      "today", "todays"]:
-                        #print("ACK! Found an Embedded Day")
+
                         return True, "Day", start_idx, end_idx, sub1
                     elif this_term in ["week", "weekly", "weeks"]:
                         return True, "Week", start_idx, end_idx, sub1

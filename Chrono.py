@@ -87,34 +87,34 @@ if __name__ == "__main__":
     ## Train ML methods on training data
     if(args.m == "DT" and args.M is None):
         ## Train the decision tree classifier and save in the classifier variable
-        #print("Got DT")
+
         classifier, feats = DTree.build_dt_model(args.d, args.c)
         with open('DT_model.pkl', 'wb') as mod:  
             pickle.dump([classifier, feats], mod)
 
     if(args.m == "RF" and args.M is None):
         ## Train the decision tree classifier and save in the classifier variable
-        # print("Got RF")
+
         classifier, feats = RandomForest.build_model(args.d, args.c)
         with open('RF_model.pkl', 'wb') as mod:
             pickle.dump([classifier, feats], mod)
     
     elif(args.m == "NN" and args.M is None):
-        #print("Got NN")
+
         ## Train the neural network classifier and save in the classifier variable
         classifier = ChronoKeras.build_model(args.d, args.c)
         feats = utils.get_features(args.d)
         classifier.save('NN_model.h5')
             
     elif(args.m == "SVM" and args.M is None):
-        #print("Got SVM")
+
         ## Train the SVM classifier and save in the classifier variable
         classifier, feats = SVMclass.build_model(args.d, args.c)
         with open('SVM_model.pkl', 'wb') as mod:  
             pickle.dump([classifier, feats], mod)
             
     elif(args.M is None):
-        #print("Got NB")
+
         ## Train the naive bayes classifier and save in the classifier variable
         classifier, feats, NB_input = NBclass.build_model(args.d, args.c)
         classifier.show_most_informative_features(20)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
             pickle.dump([classifier, feats], mod)
                 
     elif(args.M is not None):
-        #print("use saved model")
+
         if args.m == "NB" or args.m == "DT":
             with open(args.M, 'rb') as mod:
                 print(args.M)
@@ -139,16 +139,11 @@ if __name__ == "__main__":
         ## Init the ChronoEntity list
         my_chronoentities = []
         my_chrono_ID_counter = 1
-        
-        ## parse out the doctime
-        doctime = utils.getDocTime(infiles[f] + ".dct")
-        if(debug) : print(doctime)
-    
+
         ## parse out reference tokens
         text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f]+args.x)
         #my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, remove_stopwords="./Chrono/stopwords_short2.txt")
         my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags, sent_boundaries=sents)
-        
 
     
         ## mark all ref tokens if they are numeric or temporal
@@ -158,12 +153,12 @@ if __name__ == "__main__":
             print("REFERENCE TOKENS:\n")
             for tok in chroList : print(tok)
             
-        tempPhrases = utils.getTemporalPhrases(chroList, doctime)
+        tempPhrases = utils.getTemporalPhrases(chroList)
     
 #        for c in tempPhrases:
 #            print(c)
     
-        chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases, my_chrono_ID_counter, chroList, (classifier, args.m), feats, doctime)
+        chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases, my_chrono_ID_counter, chroList, (classifier, args.m), feats)
         
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])

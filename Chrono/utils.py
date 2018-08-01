@@ -44,7 +44,7 @@ from Chrono import temporalTest as tt
 import dateutil.parser
 # import datetime
 # from Chrono import TimePhrase_to_Chrono
-from Chrono import TimePhraseEntity as tp
+from Chrono import LabelPhraseEntity as tp
 import re
 import csv
 from collections import OrderedDict
@@ -53,79 +53,56 @@ import numpy as np
 from Chrono import w2ny as w2n
 import string
 import copy
-
 ## Parses a text file to idenitfy all tokens seperated by white space with their original file span coordinates.
 # @author Amy Olex
 # @param file_path The path and file name of the text file to be parsed.
 # @return text String containing the raw text blob from reading in the file.
 # @return tokenized_text A list containing each token that was seperated by white space.
 # @return spans The coordinates for each token.
+
 def getWhitespaceTokens(file_path):
     file = open(file_path, "r")
     text = file.read()
     ## Testing the replacement of all "=" signs by spaces before tokenizing.
     text = text.translate(str.maketrans("=", ' '))
-    
+
     span_generator = WhitespaceTokenizer().span_tokenize(text)
     spans = [span for span in span_generator]
     tokenized_text = WhitespaceTokenizer().tokenize(text)
     tags = nltk.pos_tag(tokenized_text)
-    #print(tokenized_text)
-    
+
     sent_tokenize_list = sent_tokenize(text)
     sent_boundaries = [0] * len(tokenized_text)
-    
+
     ## figure out which tokens are at the end of a sentence
     tok_counter = 0
-    
-    #print("\nLength of tokenized_text: " + str(len(tokenized_text)) + "\n")
-    #print("Starting value of tok_counter: " + str(tok_counter))
-    #print("Number of tokenized sentences: " + str(len(sent_tokenize_list)))
-    
-    for s in range(0,len(sent_tokenize_list)):
+
+
+    for s in range(0, len(sent_tokenize_list)):
         sent = sent_tokenize_list[s]
-        #print("Sentence #" + str(s) + "::::" + sent)
-        
+
         if "\n" in sent:
-            #print("Found Newline in Sentence #" + str(s))
             sent_newline = sent.split("\n")
-            #print("Sentence #" + str(s) + " has " + str(len(sent_newline)) + " new lines.")
             for sn in sent_newline:
                 sent_split = WhitespaceTokenizer().tokenize(sn)
-                #print("Newline string :::: " + sn)
-                #print("Length of newline string: " + str(len(sent_split)))
                 nw_idx = len(sent_split) + tok_counter - 1
-                #print("Absolute index of last token in newline string: " + str(len(sent_split)) + "+" + str(tok_counter) + "-1 = " + str(nw_idx))
                 sent_boundaries[nw_idx] = 1
-                #print("New sent_boundaries: " + str(sent_boundaries))
                 tok_counter = tok_counter + len(sent_split)
-                #print("Incremented tok_counter by " + str(len(sent_split)) + " to equal " + str(tok_counter))
-                
-                
+
+
         else:
             sent_split = WhitespaceTokenizer().tokenize(sent)
-            #print("No new lines. tok_counter: " + str(tok_counter))
-            #print("Length of sentence: " + str(len(sent_split)))
-            #print("Tokenized sentence #" + str(s) + ":::: " + str(sent_split))
             nw_idx = len(sent_split) + tok_counter - 1
-            #print("New idx: " + str(nw_idx))
             sent_boundaries[nw_idx] = 1
-            #print("New sent_boundaries: " + str(sent_boundaries))
             tok_counter = tok_counter + len(sent_split)
-            #print("Incremented tok_counter by " + str(len(sent_split)) + " to equal " + str(tok_counter))
-    
-    return text, tokenized_text, spans, tags, sent_boundaries
 
+
+    return text, tokenized_text, spans, tags, sent_boundaries
 ## Reads in the dct file and converts it to a datetime object.
 # @author Amy Olex
 # @param file_path The path and file name of the dct file.
 # @return A datetime object
-def getDocTime(file_path):
-    file = open(file_path, "r")
-    text = file.read()
-    return(dateutil.parser.parse(text))
 
-  
 ## Writes out the full XML file for all T6entities in list.
 # @author Amy Olex
 # @param chrono_list The list of Chrono objects needed to be written in the file.
@@ -169,8 +146,7 @@ def getNumberFromText(text):
     try :
         number = w2n.word_to_num(text)
     except ValueError:
-        number = isOrdinal(text)                                                                                                                   
-
+        number = isOrdinal(text)
     return number
 ####
 #END_MODULE
@@ -382,8 +358,11 @@ def markTemporal(refToks):
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
         #mark if temporal
         ref.setTemporal(temporalTest(ref.getText()))
-        
+        ref.setNumericRange(isNumericRange(ref.getText))
     return refToks
+
+
+
 ####
 #END_MODULE
 ####
@@ -403,7 +382,6 @@ def numericTest(tok, pos):
         #test for a number
         #tok.strip(",.")
         val = getNumberFromText(tok)
-        #print("Testing Number: Tok: " + tok + "  Val:" + str(val))
         if val is not None:
             return True
         return False
@@ -411,7 +389,13 @@ def numericTest(tok, pos):
 #END_MODULE
 #### 
 
-
+##Tests to see if a value is a range of numbers, to be treated like a number
+# @author Grant Matteo
+# @param tok the token string
+# @return True if a range, False otherwise
+def isNumericRange(tok):
+    tok=tok.translate(str.maketrans(string.punctuation.replace('-', ''), ' '*(len(string.punctuation)-1))).strip()
+    return (re.search('\d{1,2}\-\d{1,2}', tok) is not None)
 ## Tests to see if the token is a temporal value.
 # @author Amy Olex
 # @param tok The token string
@@ -473,100 +457,36 @@ def temporalTest(tok):
 # @author Amy Olex
 # @param chroList The list of temporally marked reference tokens
 # @return A list of temporal phrases for parsing
-def getTemporalPhrases(chroList, doctime):
-    #TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
+def getTemporalPhrases(chroList):
+    #TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], =doctime)
     id_counter = 0
     
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inphrase = False
     for n in range(0,len(chroList)):
-        #if temporal start building a list 
-        #print("Filter Start Phrase: " + str(chroList[n]))   
         if chroList[n].isTemporal():
-            #print("Is Temporal: " + str(chroList[n]))
-            if not inphrase:
-                inphrase = True
-            #in phrase, so add new element
-            tmpPhrase.append(copy.copy(chroList[n]))
-            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
-            # if this is the last token of the file, end the phrase.
-            if n == len(chroList)-1:
-                if inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inphrase = False
-            else:
-                s1,e1 = chroList[n].getSpan()
-                s2,e2 = chroList[n+1].getSpan()
-                
-                #if e1+1 != s2 and inphrase:
-                if chroList[n].getSentBoundary() and inphrase:
-                    #print("Found Sentence Boundary Word!!!!!!!!!")
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inphrase = False
-                
-            
+            print(chroList[n].getText() +"is temporal");
         elif chroList[n].isNumeric():
-            #print("Not Temporal, but Numeric: " + str(chroList[n]))
-            #if the token has a dollar sign or percent sign do not count it as temporal
-            m = re.search('[#$%]', chroList[n].getText())
-            if m is None:
-                #print("No #$%: " + str(chroList[n]))
-                #check for the "million" text phrase
-                answer = next((m for m in ["million", "billion", "trillion"] if m in chroList[n].getText().lower()), None)
-                if answer is None:
-                    #print("No million/billion/trillion: " + str(chroList[n]))
-                    if not inphrase:
-                        inphrase = True
-                    #in phrase, so add new element
-                    tmpPhrase.append(copy.copy(chroList[n]))
-            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
-            # if this is the last token of the file, end the phrase.
-            if n == len(chroList)-1:
-                if inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inphrase = False
-            else:
-                s1,e1 = chroList[n].getSpan()
-                s2,e2 = chroList[n+1].getSpan()
-                
-                #if e1+1 != s2 and inphrase:
-                if chroList[n].getSentBoundary() and inphrase:
-                    #print("Found Sentence Boundary Word!!!!!!!!!")
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inphrase = False
+            print(chroList[n].getText() +"is numeric");
+        elif chroList[n].isNumericRange():
+            print(chroList[n].getText() +"is a range");
         else:
-            #current element is not temporal, check to see if inphrase
-            #print("Not Temporal, or numeric " + str(chroList[n]))
             if inphrase:
-                #set to False, add tmpPhrase as TimePhrase entitiy to phrases, then reset tmpPhrase
                 inphrase = False
-                #check to see if only a single element and element is numeric, then do not add.
                 if len(tmpPhrase) != 1:
-                    #print("multi element phrase ")
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 elif not tmpPhrase[0].isNumeric():
-                    #print("not numeric: " + str(chroList[n-1]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 elif tmpPhrase[0].isNumeric() and tmpPhrase[0].isTemporal():
-                    #print("temporal and numeric: " + str(chroList[n-1]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 else:
-                    #print("Element not added: " + str(chroList[n-1]))
                     tmpPhrase = []
         
             
@@ -583,14 +503,14 @@ def getTemporalPhrases(chroList, doctime):
 # @param counter The ID this TimePhrase entity should have
 # @param doctime The document time.
 # @return A single TimePhrase entity with the text span and string concatenated.
-def createTPEntity(items, counter, doctime):
+def createTPEntity(items, counter):
     start_span, tmp = items[0].getSpan()
     tmp, end_span = items[len(items)-1].getSpan()
     text = ""
     for i in items:
         text = text + ' ' + i.getText()
     
-    return tp.TimePhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None, doctime=doctime)
+    return tp.LabelPhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None)
 
 ####
 #END_MODULE
