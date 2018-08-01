@@ -348,20 +348,28 @@ def get_features(data_file):
 ## END Function
 ###### 
 
-## Marks all the reference tokens that are identified as temporal.
+## Marks all the reference tokens that are identified as notable.
 # @author Amy Olex
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
-def markTemporal(refToks):
+def markNotable(refToks):
     for ref in refToks:
         #mark if numeric
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
         #mark if temporal
         ref.setTemporal(temporalTest(ref.getText()))
-        ref.setNumericRange(isNumericRange(ref.getText))
+        ref.setNumericRange(isNumericRange(ref.getText()))
+        ref.setAcronym(isAcronym(ref.getText()))
     return refToks
 
-
+## Marks all the reference tokens that are identified as temporal.
+# @author Amy Olex
+# @param refToks The list of reference Tokens
+# @return modified list of reftoks
+def isAcronym(tok):
+    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm",];
+    tok = tok.translate(str.maketrans(string.punctuation, '')).strip()
+    return tok in acronyms
 
 ####
 #END_MODULE
@@ -399,54 +407,55 @@ def isNumericRange(tok):
 ## Tests to see if the token is a temporal value.
 # @author Amy Olex
 # @param tok The token string
-# @return Boolean true if temporal, false otherwise
+# @return (Boolean true if temporal), (number indicating which temporal type was found)
+
 def temporalTest(tok):
     #remove punctuation
-    #tok = tok.translate(str.maketrans("", "", string.punctuation))
-    
+
     #if the token has a dollar sign or percent sign it is not temporal
     m = re.search('[#$%]', tok)
     if m is not None:
-        return False
+        return False, -1
     
     #look for date patterns mm[/-]dd[/-]yyyy, mm[/-]dd[/-]yy, yyyy[/-]mm[/-]dd, yy[/-]mm[/-]dd
     m = re.search('([0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4})', tok)
     if m is not None:
-        return True
+        return True, 12
     #looks for a string of 8 digits that could possibly be a date in the format 19980304 or 03041998 or 980304
     m = re.search('([0-9]{4,8})', tok)
     if m is not None:
         if tt.has24HourTime(m.group(0)):
-            return True
+            return True, 0
         if tt.hasDateOrTime(m.group(0)):
-            return True
-    
+            return True, 12
+
+
+
     #look for time patterns hh:mm:ss
+
     m = re.search('([0-9]{2}:[0-9]{2}:[0-9]{2})', tok)
     if m is not None:
-        return True
-     
-   
+        return True, 1
     if tt.hasTextMonth(tok):
-        return True
+        return True, 2
     if tt.hasDayOfWeek(tok):
-        return True
+        return True, 3
     if tt.hasPeriodInterval(tok):
-        return True
+        return True, 4
     if tt.hasAMPM(tok):
-        return True
+        return True, 5
     if tt.hasPartOfWeek(tok):
-        return True
+        return True, 6
     if tt.hasSeasonOfYear(tok):
-        return True
+        return True, 7
     if tt.hasPartOfDay(tok):
-        return True
+        return True, 8
     if tt.hasTimeZone(tok):
-        return True
+        return True, 9
     if tt.hasTempText(tok):
-        return True
+        return True, 10
     if tt.hasModifierText(tok):
-        return True
+        return True, 11
 
 ####
 #END_MODULE

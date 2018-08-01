@@ -142,12 +142,10 @@ if __name__ == "__main__":
 
         ## parse out reference tokens
         text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f]+args.x)
-        #my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, remove_stopwords="./Chrono/stopwords_short2.txt")
         my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags, sent_boundaries=sents)
 
     
-        ## mark all ref tokens if they are numeric or temporal
-        chroList = utils.markTemporal(my_refToks)
+        chroList = utils.markNotable(my_refToks)
         
         if(debug) :
             print("REFERENCE TOKENS:\n")
