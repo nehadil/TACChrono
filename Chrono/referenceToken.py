@@ -50,7 +50,7 @@ import string
 class refToken :
 
     ## The constructor
-    def __init__(self, id, text, numericRange=None,start_span=None, end_span=None, pos=None, temporal=None, numeric=None, sent_boundary=None) :
+    def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None,start_span=None, end_span=None, pos=None, temporal=None, numeric=None, sent_boundary=None) :
         self.id = id
         self.text = text
         self.start_span = start_span
@@ -60,7 +60,8 @@ class refToken :
         self.numeric = numeric
         self.sent_boundary = sent_boundary
         self.numericRange = numericRange
-
+        self.acronym= acronym
+        self.temporalType=temporalType
     ## Defines how to convert a refToken to string
     def __str__(self) :
         #return str(self.id) + " " + self.text
@@ -83,6 +84,15 @@ class refToken :
     def setNumericRange(self, b) :
         self.numericRange=b
 
+    ## Sets whether or not the current refTok represents an acronym, etc for Frequency checking
+    #  @param b The boolean value to set acronym to
+    def setAcronym(self, b):
+        self.acronym=b
+
+    ## Sets the temporal type of this phrase
+    #  @param b The int value to set temporalType to
+    def setTemporalType(self, n):
+        self.temporalType= n
     ## Sets the entity's text
     #  @param text The text to set it to
     def setText(self, text) :
@@ -168,7 +178,7 @@ class refToken :
 # @param temporal A boolean list of 0's and 1' indicating which token contains temporal information. Must be the same length as tok_list. Assumes it is a one-to-one relationship in the same order as tok_list.
 # @param remove_stopwords A boolean that, if true, removes tokens in the stopword list.  Defaults to False.
 # @return A list of refToken objects in the same order as the input tok_list.
-def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=None, remove_stopwords=None, sent_boundaries=None) :
+def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=None, sent_boundaries=None) :
     ref_list = list()
     tok_len = len(tok_list)
     ## figure out which lists were sent in
@@ -201,8 +211,7 @@ def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=Non
         ref_list.append(refToken(id=id_counter, text=tok_list[idx], start_span=span[idx][0] if include[1] else None, end_span=span[idx][1] if include[1] else None, pos=pos[idx][1] if include[2] else None, temporal=temporal[idx] if include[3] else None, sent_boundary=sent_boundaries[idx] if include[4] else None))
         id_counter = id_counter +1
         
-    if remove_stopwords is not None:
-        ref_list = removeStopWords(ref_list, remove_stopwords)
+
         
     return ref_list
 
@@ -212,17 +221,7 @@ def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=Non
 # @param stopwords_path The file with stopwords, defaults to "./stopwords_short"
 # @return A list of refTokens in the same order as the input tok_list with stopwords removed
 
-def removeStopWords(tok_list, stopwords_path="./stopwords_short") :
-    with open(stopwords_path) as raw:
-        stopwords = raw.read().splitlines()
-    
-    filtered_tokens = []
-    for tok in tok_list :
-        if tok.getText().lower() not in stopwords :
-            filtered_tokens.append(tok) 
-            
-    return filtered_tokens
-    
+
 ## Function to remove all punctuation from a list of refToken objects
 # @author Amy Olex
 # @param tok_list The list of tokens (required)
