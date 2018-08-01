@@ -128,10 +128,14 @@ class refToken :
     #### Methods to GET properties ####
     
     ## Gets the entity's ID
+    def isAcronym(self):
+        return self.acronym
+    def getTemporalType(self):
+        return self.temporalType
     def getID(self) :
         return(self.id)
     def isNumericRange(self):
-        return self.isNumeric
+        return self.numericRange
     ## Gets the entity's text
     def getText(self) :
         return(self.text)
