@@ -47,6 +47,7 @@ import dateutil.parser
 # from Chrono import TimePhrase_to_Chrono
 from Chrono import DosePhraseEntity as dp
 from Chrono import TimePhraseEntity as tp
+from Chrono import LabelPhraseEntity as tp
 import re
 import csv
 from collections import OrderedDict
@@ -55,34 +56,57 @@ import numpy as np
 from Chrono import w2ny as w2n
 import string
 import copy
-
 ## Parses a text file to idenitfy all tokens seperated by white space with their original file span coordinates.
 # @author Amy Olex
 # @param file_path The path and file name of the text file to be parsed.
 # @return text String containing the raw text blob from reading in the file.
 # @return tokenized_text A list containing each token that was seperated by white space.
 # @return spans The coordinates for each token.
+
 def getWhitespaceTokens(file_path):
     file = open(file_path, "r")
     text = file.read()
-    #text = text.replace("\n", "\n\n")
+    ## Testing the replacement of all "=" signs by spaces before tokenizing.
+    text = text.translate(str.maketrans("=", ' '))
+
     span_generator = WhitespaceTokenizer().span_tokenize(text)
     spans = [span for span in span_generator]
     tokenized_text = WhitespaceTokenizer().tokenize(text)
     tags = nltk.pos_tag(tokenized_text)
-    return text, tokenized_text, spans, tags
 
 
+    sent_tokenize_list = sent_tokenize(text)
+    sent_boundaries = [0] * len(tokenized_text)
+
+    ## figure out which tokens are at the end of a sentence
+    tok_counter = 0
+
+
+    for s in range(0, len(sent_tokenize_list)):
+        sent = sent_tokenize_list[s]
+
+        if "\n" in sent:
+            sent_newline = sent.split("\n")
+            for sn in sent_newline:
+                sent_split = WhitespaceTokenizer().tokenize(sn)
+                nw_idx = len(sent_split) + tok_counter - 1
+                sent_boundaries[nw_idx] = 1
+                tok_counter = tok_counter + len(sent_split)
+
+
+        else:
+            sent_split = WhitespaceTokenizer().tokenize(sent)
+            nw_idx = len(sent_split) + tok_counter - 1
+            sent_boundaries[nw_idx] = 1
+            tok_counter = tok_counter + len(sent_split)
+
+
+    return text, tokenized_text, spans, tags, sent_boundaries
 ## Reads in the dct file and converts it to a datetime object.
 # @author Amy Olex
 # @param file_path The path and file name of the dct file.
 # @return A datetime object
-def getDocTime(file_path):
-    file = open(file_path, "r")
-    text = file.read()
-    return(dateutil.parser.parse(text))
 
-  
 ## Writes out the full XML file for all T6entities in list.
 # @author Amy Olex
 # @param chrono_list The list of Chrono objects needed to be written in the file.
@@ -132,8 +156,7 @@ def getNumberFromText(text):
     try :
         number = w2n.word_to_num(text)
     except ValueError:
-        number = isOrdinal(text)                                                                                                                   
-
+        number = isOrdinal(text)
     return number
 ####
 #END_MODULE
@@ -335,17 +358,18 @@ def get_features(data_file):
 ## END Function
 ###### 
 
-## Marks all the reference tokens that are identified as temporal.
+## Marks all the reference tokens that are identified as notable.
 # @author Amy Olex
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
-def markTemporal(refToks):
+def markNotable(refToks):
     for ref in refToks:
-        #mark if numeric
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
-        #mark if temporal
-        ref.setTemporal(temporalTest(ref.getText()))
-        
+        boole, tID =(temporalTest(ref.getText()))
+        ref.setTemporal(boole)
+        ref.setTemporalType(tID)
+        ref.setNumericRange(isNumericRange(ref.getText()))
+        ref.setAcronym(isAcronym(ref.getText()))
     return refToks
 
 ## Marks reference tokens that are dose-related (i.e., dose, dose units, conjunctions)
@@ -391,6 +415,15 @@ def markDose(refToks):
 
     return refToks
 
+## Marks all the reference tokens that are identified as temporal.
+# @author Amy Olex
+# @param refToks The list of reference Tokens
+# @return modified list of reftoks
+def isAcronym(tok):
+    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w"];
+    tok = re.sub('['+string.punctuation+']', '', tok).strip()
+    tok=tok.lower();
+    return tok in acronyms
 
 ####
 #END_MODULE
@@ -508,7 +541,6 @@ def numericTest(tok, pos):
         # test for a number
         # tok.strip(",.")
         val = getNumberFromText(tok)
-        #print("Testing Number: Tok: " + tok + "  Val:" + str(val))
         if val is not None:
             return True
         return False
@@ -516,59 +548,67 @@ def numericTest(tok, pos):
 #END_MODULE
 #### 
 
-
+##Tests to see if a value is a range of numbers, to be treated like a number
+# @author Grant Matteo
+# @param tok the token string
+# @return True if a range, False otherwise
+def isNumericRange(tok):
+    tok=tok.translate(str.maketrans(string.punctuation.replace('-', ''), ' '*(len(string.punctuation)-1))).strip()
+    return (re.search('\d{1,2}\-\d{1,2}', tok) is not None)
 ## Tests to see if the token is a temporal value.
 # @author Amy Olex
 # @param tok The token string
-# @return Boolean true if temporal, false otherwise
+# @return (Boolean true if temporal), (number indicating which temporal type was found)
+
 def temporalTest(tok):
     #remove punctuation
-    #tok = tok.translate(str.maketrans("", "", string.punctuation))
-    
+
     #if the token has a dollar sign or percent sign it is not temporal
     m = re.search('[#$%]', tok)
     if m is not None:
-        return False
+        return False, -1
     
     #look for date patterns mm[/-]dd[/-]yyyy, mm[/-]dd[/-]yy, yyyy[/-]mm[/-]dd, yy[/-]mm[/-]dd
     m = re.search('([0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4})', tok)
     if m is not None:
-        return True
+        return True, 12
     #looks for a string of 8 digits that could possibly be a date in the format 19980304 or 03041998 or 980304
     m = re.search('([0-9]{4,8})', tok)
     if m is not None:
         if tt.has24HourTime(m.group(0)):
-            return True
+            return True, 0
         if tt.hasDateOrTime(m.group(0)):
-            return True
-    
+            return True, 12
+
+
+
     #look for time patterns hh:mm:ss
+
     m = re.search('([0-9]{2}:[0-9]{2}:[0-9]{2})', tok)
     if m is not None:
-        return True
-     
-   
+        return True, 1
     if tt.hasTextMonth(tok):
-        return True
+        return True, 2
     if tt.hasDayOfWeek(tok):
-        return True
-    if tt.hasDoseDuration(tok):
-        return True
+        return True, 3
+
     if tt.hasPeriodInterval(tok):
-        return True
+        return True, 4
     if tt.hasAMPM(tok):
-        return True
+        return True, 5
     if tt.hasPartOfWeek(tok):
-        return True
+        return True, 6
     if tt.hasSeasonOfYear(tok):
-        return True
+        return True, 7
     if tt.hasPartOfDay(tok):
-        return True
+        return True, 8
     if tt.hasTimeZone(tok):
-        return True
+        return True, 9
     if tt.hasTempText(tok):
-        return True
+        return True, 10
     if tt.hasModifierText(tok):
+        return True, 11
+    if tt.hasDoseDuration(tok):
         return True
 
 ## Tests to see if token is a unit and if the next token is a part of the unit phrase
@@ -658,7 +698,6 @@ def unitTest(tok):
                 return True, False
     return False, False
 
-
 ####
 #END_MODULE
 #### 
@@ -668,16 +707,14 @@ def unitTest(tok):
 # @author Amy Olex
 # @param chroList The list of temporally marked reference tokens
 # @return A list of temporal phrases for parsing
-def getTemporalPhrases(chroList, doctime):
-    #TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
+def getTemporalPhrases(chroList):
+    #TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], =doctime)
     id_counter = 0
     
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inphrase = False
     for n in range(0,len(chroList)):
-        #if temporal start building a list 
-        #print("Filter Start Phrase: " + str(chroList[n]))   
         if chroList[n].isTemporal():
             #print("Is Temporal: " + str(chroList[n]))
             if not inphrase:
@@ -733,30 +770,23 @@ def getTemporalPhrases(chroList, doctime):
                     id_counter = id_counter + 1
                     tmpPhrase = []
                     inphrase = False
+
         else:
-            #current element is not temporal, check to see if inphrase
-            #print("Not Temporal, or numeric " + str(chroList[n]))
             if inphrase:
-                #set to False, add tmpPhrase as TimePhrase entitiy to phrases, then reset tmpPhrase
                 inphrase = False
-                #check to see if only a single element and element is numeric, then do not add.
                 if len(tmpPhrase) != 1:
-                    #print("multi element phrase ")
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 elif not tmpPhrase[0].isNumeric():
-                    #print("not numeric: " + str(chroList[n-1]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 elif tmpPhrase[0].isNumeric() and tmpPhrase[0].isTemporal():
-                    #print("temporal and numeric: " + str(chroList[n-1]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 else:
-                    #print("Element not added: " + str(chroList[n-1]))
                     tmpPhrase = []
         
             
@@ -814,14 +844,14 @@ def getDosePhrases(chroList, doctime):
 # @param counter The ID this TimePhrase entity should have
 # @param doctime The document time.
 # @return A single TimePhrase entity with the text span and string concatenated.
-def createTPEntity(items, counter, doctime):
+def createTPEntity(items, counter):
     start_span, tmp = items[0].getSpan()
     tmp, end_span = items[len(items)-1].getSpan()
     text = ""
     for i in items:
         text = text + ' ' + i.getText()
     
-    return tp.TimePhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None, doctime=doctime)
+    return tp.LabelPhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None)
 
 
 

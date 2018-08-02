@@ -48,11 +48,14 @@ import string
 # @param numeric A boolean indicating if the token is a numeric value
 # @para
 # @param temporal A boolean indicating if this token contains any temporal components
-
-class refToken :
+# @param numericRange A boolean indicating if this token is a numeric range (0-12)
+# @param sent_boundary A boolean indicating if this token is at the end of a sentence or line
+class refToken:
 
     ## The constructor
-    def __init__(self, id, text, start_span=None, end_span=None, pos=None, doseunit=None, t6list=None, numeric=None, combdose=None, temporal=None, conjunction=None) :
+    def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None,start_span=None, end_span=None,
+                 pos=None, temporal=None, doseunit=None, t6list=None, numeric=None, combdose=None,
+                 conjunction=None, sent_boundary=None) :
         self.id = id
         self.text = text
         self.start_span = start_span
@@ -64,7 +67,10 @@ class refToken :
         self.combdose = combdose
         self.temporal = temporal
         self.conjunction = conjunction
-
+        self.sent_boundary = sent_boundary
+        self.numericRange = numericRange
+        self.acronym= acronym
+        self.temporalType=temporalType
     ## Defines how to convert a refToken to string
     def __str__(self) :
         #return str(self.id) + " " + self.text
@@ -72,9 +78,9 @@ class refToken :
         pos_str = "" if self.pos is None else ("pos: " + self.pos)
         temp_str = "" if self.temporal is None else (" isTemp: " + str(self.temporal))
         num_str = "" if self.numeric is None else (" isNumeric: " + str(self.numeric))
-        t6_str = "" if self.t6list is None else (" T6List: " + str(self.t6list))
+        sentb_str = "" if self.sent_boundary is None else (" isEndSent: " + str(self.sent_boundary))
         #return str(self.id) + " " + self.text
-        return str(self.id) + " " + self.text + span_str + pos_str  + temp_str + num_str + t6_str
+        return str(self.id) + " " + self.text + span_str + pos_str  + temp_str + num_str + sentb_str
 
     #### Methods to SET properties ###
     
@@ -82,7 +88,20 @@ class refToken :
     #  @param id The ID to set it to
     def setID(self, id) :
         self.id = id
-        
+    ## Sets whether or not the current refTok represents a numeric range (8-10), etc for Frequency checking
+    #  @param b The boolean value to set isNumericRange to
+    def setNumericRange(self, b) :
+        self.numericRange=b
+
+    ## Sets whether or not the current refTok represents an acronym, etc for Frequency checking
+    #  @param b The boolean value to set acronym to
+    def setAcronym(self, b):
+        self.acronym=b
+
+    ## Sets the temporal type of this phrase
+    #  @param b The int value to set temporalType to
+    def setTemporalType(self, n):
+        self.temporalType= n
     ## Sets the entity's text
     #  @param text The text to set it to
     def setText(self, text) :
@@ -115,7 +134,6 @@ class refToken :
     #  @param temp A boolean, 1 if it is a numeric token, 0 otherwise
     def setNumeric(self, num) :
         self.numeric = num
-
     def setTemporal(self, temp):
         self.temporal = temp
 
@@ -129,12 +147,21 @@ class refToken :
             self.t6list.append(t6id)
 
 
+    ## Sets the entity's sentence boundary flag
+    #  @param temp A boolean, 1 if it is a numeric token, 0 otherwise
+    def setSentBoundary(self, num) :
+        self.sent_boundary = num
     #### Methods to GET properties ####
     
     ## Gets the entity's ID
+    def isAcronym(self):
+        return self.acronym
+    def getTemporalType(self):
+        return self.temporalType
     def getID(self) :
         return(self.id)
-        
+    def isNumericRange(self):
+        return self.numericRange
     ## Gets the entity's text
     def getText(self) :
         return(self.text)
@@ -165,8 +192,8 @@ class refToken :
         return self.conjunction
 
     ## Gets the entity's t6list
-    def getT6list(self) :
-        return(self.t6list)
+    def getSentBoundary(self) :
+        return(self.sent_boundary)
         
     ## Function to determine if the input span overlaps this objects span
     # @author Amy Olex
@@ -190,11 +217,11 @@ class refToken :
 # @param temporal A boolean list of 0's and 1' indicating which token contains temporal information. Must be the same length as tok_list. Assumes it is a one-to-one relationship in the same order as tok_list.
 # @param remove_stopwords A boolean that, if true, removes tokens in the stopword list.  Defaults to False.
 # @return A list of refToken objects in the same order as the input tok_list.
-def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=None, remove_stopwords=None) :
+def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=None, sent_boundaries=None) :
     ref_list = list()
     tok_len = len(tok_list)
     ## figure out which lists were sent in
-    include = [1, 0, 0, 0]
+    include = [1, 0, 0, 0, 0]
     if span is not None:
         if len(span)==tok_len:
             include[1]=1
@@ -213,13 +240,18 @@ def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=Non
         else:
             raise ValueError('temporal list is not same length as token list.')
     
+    if sent_boundaries is not None:
+        if len(sent_boundaries)==tok_len:
+            include[4]=1
+        else:
+            raise ValueError('sentence boundary flag array is not same length as token list.')
     
     for idx in range(0,tok_len):
-        ref_list.append(refToken(id=id_counter, text=tok_list[idx], start_span=span[idx][0] if include[1] else None, end_span=span[idx][1] if include[1] else None, pos=pos[idx][1] if include[2] else None, doseunit=temporal[idx] if include[3] else None))
+
+        ref_list.append(refToken(id=id_counter, text=tok_list[idx], start_span=span[idx][0] if include[1] else None, end_span=span[idx][1] if include[1] else None, pos=pos[idx][1] if include[2] else None, temporal=temporal[idx] if include[3] else None, sent_boundary=sent_boundaries[idx] if include[4] else None))
         id_counter = id_counter +1
         
-    if remove_stopwords is not None:
-        ref_list = removeStopWords(ref_list, remove_stopwords)
+
         
     return ref_list
 
@@ -240,6 +272,7 @@ def removeStopWords(tok_list, stopwords_path="./stopwords_short") :
             filtered_tokens.append(tok)
     return filtered_tokens
     
+
 ## Function to remove all punctuation from a list of refToken objects
 # @author Amy Olex
 # @param tok_list The list of tokens (required)

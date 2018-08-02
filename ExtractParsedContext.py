@@ -185,10 +185,10 @@ if __name__ == "__main__":
                         out.write("\n\n*****\nFile: " + f)
                 
                     tmp_terms = writeTargetSpansXML(path2, myElist, int(args.c), out)
-                    #print("my tmp_terms: " + str(tmp_terms))
+
                 
                     terms = terms.union(tmp_terms)
-                    #print("my terms: " + str(terms))
+
             else:
                 if int(args.c) > 0:
                     out.write("\n\n*****\nSkipping File: " + f)
@@ -216,10 +216,10 @@ if __name__ == "__main__":
                         out.write("\n\n*****\nFile: " + f)
                 
                     tmp_terms = writeTargetSpansANN(path2, myElist, int(args.c), out)
-                    #print("my tmp_terms: " + str(tmp_terms))
+
                 
                     terms = terms.union(tmp_terms)
-                    #print("my terms: " + str(terms))
+
             else:
                 if int(args.c) > 0:
                     out.write("\n\n*****\nSkipping File: " + f)

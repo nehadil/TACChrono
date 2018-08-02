@@ -12,7 +12,11 @@ import re
 def buildHourOfDay(s, chrono_id, chrono_list, flags):
     b, text, startSpan, endSpan = hasHourOfDay(s)
     if b and not flags["hour"]:
+<<<<<<< HEAD
         # print("Found Hour in buildChronoHour")
+=======
+
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a
         flags["hour"] = True
         ref_StartSpan, ref_EndSpan = s.getSpan()
         abs_StartSpan = ref_StartSpan + startSpan
