@@ -360,6 +360,7 @@ def markNotable(refToks):
         ref.setTemporalType(tID)
         ref.setNumericRange(isNumericRange(ref.getText()))
         ref.setAcronym(isAcronym(ref.getText()))
+        ref
     return refToks
 
 ## Marks all the reference tokens that are identified as temporal.
@@ -367,7 +368,7 @@ def markNotable(refToks):
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
 def isAcronym(tok):
-    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w"];
+    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w", "q"];
     tok = re.sub('['+string.punctuation+']', '', tok).strip()
     tok=tok.lower();
     return tok in acronyms
@@ -417,7 +418,7 @@ def temporalTest(tok):
     m = re.search('[#$%]', tok)
     if m is not None:
         return False, -1
-    
+
     #look for date patterns mm[/-]dd[/-]yyyy, mm[/-]dd[/-]yy, yyyy[/-]mm[/-]dd, yy[/-]mm[/-]dd
     m = re.search('([0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4})', tok)
     if m is not None:
