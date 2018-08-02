@@ -50,8 +50,9 @@ import string
 class refToken :
 
     ## The constructor
-    def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None,start_span=None, end_span=None, pos=None, temporal=None, numeric=None, sent_boundary=None) :
+    def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None, start_span=None, end_span=None, pos=None, temporal=None, numeric=None, sent_boundary=None) :
         self.id = id
+        self.frequencyTransition=False
         self.text = text
         self.start_span = start_span
         self.end_span = end_span
@@ -80,7 +81,7 @@ class refToken :
     def setID(self, id) :
         self.id = id
     ## Sets whether or not the current refTok represents a numeric range (8-10), etc for Frequency checking
-    #  @param b The boolean value to set isNumericRange to
+    #  @param b The boolean value to set NumericRange to
     def setNumericRange(self, b) :
         self.numericRange=b
 
@@ -90,9 +91,14 @@ class refToken :
         self.acronym=b
 
     ## Sets the temporal type of this phrase
-    #  @param b The int value to set temporalType to
+    #  @param n The int value to set temporalType to
     def setTemporalType(self, n):
         self.temporalType= n
+
+    ## Sets whether this phrase is a Frequency Transition (to, each, every, etc)
+    #  @param boole boolean for whether it is (true) or isnt (false)
+    def setIsFrequencyTransition(self, boole):
+        self.frequencyTransition=boole
     ## Sets the entity's text
     #  @param text The text to set it to
     def setText(self, text) :
