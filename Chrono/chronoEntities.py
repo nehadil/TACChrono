@@ -130,7 +130,53 @@ class ChronoEntity:
                 "\n\t\t<properties>\n\t\t".format(self.entityID, self.start_span,
                                                   self.end_span, self.type, self.parent_type))
 
+class ChronoDoseEntity(ChronoEntity):
+    def __init__(self, id, label, span, text):
+        super().__init__(id, span[0], span[1], "DosePhrase", None)
+        self.id = id
+        self.label = label
+        self.text = text
+        self.span = span
 
+    def getText(self):
+        return self.text
+
+
+
+    def print_xml(self):
+        #return "\t<Mention id=\"{}\" label=\"{}\" span=\"{} {}\" str=\"{}\"/>".format(self.id, self.label,self.span[0], self.span[1],self.text )
+        return "{}\t{} {} {}\t{}".format(self.id, self.label, self.span[0], self.span[1], self.text)
+class ChronoDoseDurationEntity(ChronoEntity):
+    def __init__(self, entityID, start_span, end_span, dose_type, number,
+                 modifier=None):
+        super().__init__(entityID, start_span, end_span, "Dose", "Duration")
+        self.dose_type = dose_type
+        self.number = number
+        self.modifier = modifier
+
+    def set_dose_type(self, dose_type):
+        self.dose_type = dose_type
+
+    def get_dose_type(self):
+        return self.dose_type
+
+    def set_number(self, number):
+        self.number = number
+
+    def get_number(self):
+        return self.number
+
+    def set_modifier(self, modifier):
+        self.modifier = modifier
+
+    def get_modifier(self):
+        return self.modifier
+
+    ## Prints the xml leaving empty variables blank
+    def print_xml(self):
+        return (super().print_xml() + "\t<Type>{}</Type>\n\t\t\t<Number>{}</Number>\n"
+                                      "\t\t\t<Modifier>{}</Modifier>\n\t\t</properties>\n\t</entity>\n".format(
+            self.dose_type, self.number or '', self.modifier or ''))
 ## Super class for Intervals which are defined as years
 class ChronoIntervalEntity(ChronoEntity):
     def __init__(self, entityID, start_span, end_span, type):

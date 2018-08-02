@@ -136,7 +136,11 @@ def buildTextMonthAndDay(s, chrono_id, chrono_list, flags, dct=None, ref_list=No
                     chrono_id = chrono_id + 1
 
                 if mod_type == "Last":
+<<<<<<< HEAD
+                    # print("FOUND LAST")
+=======
 
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a
                     chrono_list.append(chrono.ChronoLastOperator(entityID=str(chrono_id) + "entity", start_span=ref_Sspan+mod_start, end_span=ref_Sspan+mod_end, repeating_interval=my_month_entity.get_id(), semantics="Interval-Not-Included"))
                     chrono_id = chrono_id + 1
 

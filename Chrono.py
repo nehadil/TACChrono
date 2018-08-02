@@ -35,12 +35,16 @@
 import argparse
 import os
 import pickle
+import spacy
+import re
 
 from chronoML import DecisionTree as DTree
 from chronoML import RF_classifier as RandomForest
 from chronoML import NB_nltk_classifier as NBclass, ChronoKeras
 from chronoML import SVM_classifier as SVMclass
+from Chrono import DosePhrase_to_Chrono
 from Chrono import BuildEntities
+# from Chrono import TimePhrase_to_Chrono
 from Chrono import referenceToken
 from Chrono import utils
 from keras.models import load_model
@@ -67,7 +71,8 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     ## Now we can access each argument as args.i, args.o, args.r
-    
+    print(args.i)
+
     ## Get list of folder names in the input directory
     indirs = []
     infiles = []
@@ -75,7 +80,7 @@ if __name__ == "__main__":
     outdirs = []
     for root, dirs, files in os.walk(args.i, topdown = True):
        for name in dirs:
-           
+          print(os.path.join(root,name))
           indirs.append(os.path.join(root, name))
           infiles.append(os.path.join(root,name,name))
           outfiles.append(os.path.join(args.o,name,name))
@@ -134,30 +139,29 @@ if __name__ == "__main__":
     ## Pass the ML classifier through to the parse SUTime entities method.
   
     ## Loop through each file and parse
+
     for f in range(0,len(infiles)) :
         print("Parsing "+ infiles[f] +" ...")
         ## Init the ChronoEntity list
         my_chronoentities = []
         my_chrono_ID_counter = 1
 
-        ## parse out reference tokens
-        text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f]+args.x)
+
+
+        text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f] + args.x)
+
+
+
+
         my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags, sent_boundaries=sents)
 
     
         chroList = utils.markNotable(my_refToks)
-        
-        if(debug) :
-            print("REFERENCE TOKENS:\n")
-            for tok in chroList : print(tok)
-            
         tempPhrases = utils.getTemporalPhrases(chroList)
     
-#        for c in tempPhrases:
-#            print(c)
+
     
-        chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases, my_chrono_ID_counter, chroList, (classifier, args.m), feats)
-        
+
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
     
