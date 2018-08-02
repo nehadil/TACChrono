@@ -39,6 +39,7 @@ import spacy
 import re
 
 from chronoML import DecisionTree as DTree
+from chronoML import RF_classifier as RandomForest
 from chronoML import NB_nltk_classifier as NBclass, ChronoKeras
 from chronoML import SVM_classifier as SVMclass
 from Chrono import DosePhrase_to_Chrono
@@ -91,27 +92,34 @@ if __name__ == "__main__":
     ## Train ML methods on training data
     if(args.m == "DT" and args.M is None):
         ## Train the decision tree classifier and save in the classifier variable
-        #print("Got DT")
+
         classifier, feats = DTree.build_dt_model(args.d, args.c)
         with open('DT_model.pkl', 'wb') as mod:  
             pickle.dump([classifier, feats], mod)
+
+    if(args.m == "RF" and args.M is None):
+        ## Train the decision tree classifier and save in the classifier variable
+
+        classifier, feats = RandomForest.build_model(args.d, args.c)
+        with open('RF_model.pkl', 'wb') as mod:
+            pickle.dump([classifier, feats], mod)
     
     elif(args.m == "NN" and args.M is None):
-        #print("Got NN")
+
         ## Train the neural network classifier and save in the classifier variable
         classifier = ChronoKeras.build_model(args.d, args.c)
         feats = utils.get_features(args.d)
         classifier.save('NN_model.h5')
             
     elif(args.m == "SVM" and args.M is None):
-        #print("Got SVM")
+
         ## Train the SVM classifier and save in the classifier variable
         classifier, feats = SVMclass.build_model(args.d, args.c)
         with open('SVM_model.pkl', 'wb') as mod:  
             pickle.dump([classifier, feats], mod)
             
     elif(args.M is None):
-        #print("Got NB")
+
         ## Train the naive bayes classifier and save in the classifier variable
         classifier, feats, NB_input = NBclass.build_model(args.d, args.c)
         classifier.show_most_informative_features(20)
@@ -119,7 +127,7 @@ if __name__ == "__main__":
             pickle.dump([classifier, feats], mod)
                 
     elif(args.M is not None):
-        #print("use saved model")
+
         if args.m == "NB" or args.m == "DT":
             with open(args.M, 'rb') as mod:
                 print(args.M)
@@ -137,52 +145,22 @@ if __name__ == "__main__":
         ## Init the ChronoEntity list
         my_chronoentities = []
         my_chrono_ID_counter = 1
-        
-        ## parse out the doctime
-        doctime = utils.getDocTime(infiles[f] + ".dct")
-        if(debug) : print(doctime)
+
+
+
+        text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f] + args.x)
+
+
+
+
+        my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags, sent_boundaries=sents)
+
     
-        ## parse out reference tokens
-        text, tokens, spans, tags = utils.gettext, tokens, spans, tags = utils.getWhitespaceTokens(infiles[f]+args.x)
-        nlp = spacy.load('en_core_web_sm')
-        doc = nlp(text)
-        chunks = []
-        for chunk in doc.noun_chunks:
-            chunks.append(chunk.text)
-        #my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags, remove_stopwords="./Chrono/dosestopwords.txt")
-        my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags)
-
-        
-        if(debug) :
-            print("REFERENCE TOKENS:\n")
-            for tok in my_refToks : print(tok)
+        chroList = utils.markNotable(my_refToks)
+        tempPhrases = utils.getTemporalPhrases(chroList)
     
-        ## mark all ref tokens if they are numeric or temporal
-        chroList = utils.markTemporal(my_refToks)
 
-        chroList = utils.markDose(my_refToks)
-        dosePhrases = utils.getDosePhrases(chroList, doctime)
-        for dose in dosePhrases:
-            for chunk in chunks:
-                if dose.getText() in chunk and ("bw" in chunk.lower() or "b.w" in chunk.lower() or "body" in chunk.lower()):
-                    startpoint = text.find(chunk)
-                    endpoint = startpoint + len(chunk)
-                    if dose.getSpan()[0]>=startpoint and dose.getSpan()[1]<=endpoint:
-                        start = chunk.find(dose.getText())
-                        end = start + len(dose.getText())
-                        rest = chunk[end:]
-                        dose.setText(dose.getText()+rest)
-                        dose.setSpan(dose.getSpan()[0], len(dose.getText()))
-                        break
-        tempPhrases = utils.getTemporalPhrases(chroList, doctime)
-
-
-
-        chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
-                                                                                        my_chrono_ID_counter, chroList,
-                                                                                        (classifier, args.m), feats,
-                                                                                        doctime)
-        #chrono_master_list.append(DosePhrase_to_Chrono.buildChronoList(dosePhrases))
+    
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])

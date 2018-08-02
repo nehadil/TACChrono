@@ -87,7 +87,11 @@ def extractPeriodCalInterval(path, file):
 
 ############
 
-path='/Users/alolex/Desktop/VCU_PhD_Work/Chrono/data/SemEval-OfficialTrain/'
+path = '/home/alolex/Newswire-THYME/'
+#path='/Users/alolex/Desktop/VCU_PhD_Work/Chrono/data/MLDebugging_gold/'
 
-#print(path)
+#path='/Users/alolex/Desktop/VCU_PhD_Work/Chrono/data/SemEval-OfficialTrain/'
+#path='/home/alolex/THYME_Data/THYMEColonFinal_Train/gold/'
+
+
 parseGoldEntities(path)

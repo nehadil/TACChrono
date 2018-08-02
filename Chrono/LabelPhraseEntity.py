@@ -44,16 +44,24 @@ import json
 # @param end_span The location of the last character
 # @param type The type of temporal entity parsed by TimePhrase.  Can be one of DATE, TIME, SET, DURATION, RANGE...I think!
 # @param value The normalized date/time value from TimePhrase.
+<<<<<<< HEAD:Chrono/TimePhraseEntity.py
 class TimePhraseEntity:
 
     ## The constructor
     def __init__(self, id, text, start_span, end_span, temptype, tempvalue, doctime):
+=======
+class LabelPhraseEntity :
+    
+    ## The constructor
+    def __init__(self, id, text, start_span, end_span, temptype, tempvalue) :
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a:Chrono/LabelPhraseEntity.py
         self.id = id
         self.text = text
         self.start_span = start_span
         self.end_span = end_span
         self.temptype = temptype
         self.tempvalue = tempvalue
+<<<<<<< HEAD:Chrono/TimePhraseEntity.py
         self.doctime = doctime
 
     ## String representation
@@ -61,6 +69,14 @@ class TimePhraseEntity:
         span_str = "" if self.start_span is None else (" <" + str(self.start_span) + "," + str(self.end_span) + "> ")
         return (str(self.id) + " " + str(self.text) + span_str + str(self.temptype) + " " + str(
             self.tempvalue) + " " + str(self.doctime))
+=======
+
+    # String representation
+    def __str__(self) :
+        span_str = "" if self.start_span is None else (" <" + str(self.start_span) + "," + str(self.end_span) + "> ")
+        return(str(self.id) + " " + str(self.text) + span_str + str(self.temptype) + " " + str(self.tempvalue) + " ")
+    
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a:Chrono/LabelPhraseEntity.py
 
     #### Methods to SET properties ###
 
@@ -91,9 +107,12 @@ class TimePhraseEntity:
     def setValue(self, tempvalue):
         self.tempvalue = tempvalue
 
+<<<<<<< HEAD:Chrono/TimePhraseEntity.py
     def setDoctime(self, doctime):
         self.doctime = doctime
 
+=======
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a:Chrono/LabelPhraseEntity.py
     #### Methods to GET properties ####
 
     ## Gets the entity's ID
@@ -113,12 +132,18 @@ class TimePhraseEntity:
         return (self.temptype)
 
     ## Gets the entity's tempvalue
+<<<<<<< HEAD:Chrono/TimePhraseEntity.py
     def getValue(self):
         return (self.tempvalue)
 
     ## Gets the entity's doctime
     def getDoctime(self):
         return (self.doctime)
+=======
+    def getValue(self) :
+        return(self.tempvalue)
+    
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a:Chrono/LabelPhraseEntity.py
 
 
 ## Function to convert json output of TimePhrase to a list of TimePhraseEntities
@@ -126,6 +151,7 @@ class TimePhraseEntity:
 # @param tempt_json The TimePhrase parsed json string (required)
 # @param id_counter The number the ID counter should start at. Default is 0.
 # @return A list of TimePhraseEntity objects in the same order as the input json list.
+<<<<<<< HEAD:Chrono/TimePhraseEntity.py
 def import_TimePhrase(tempt_json, doctime=None, id_counter=0):
     temp_list = []
     for j in tempt_json:
@@ -133,5 +159,13 @@ def import_TimePhrase(tempt_json, doctime=None, id_counter=0):
                                           temptype=j['type'], tempvalue=j['value'], doctime=doctime))
         id_counter = id_counter + 1
 
+=======
+def import_TimePhrase(tempt_json, id_counter=0) :
+    temp_list = []
+    for j in tempt_json:
+        temp_list.append(LabelPhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value']))
+        id_counter = id_counter +1
+        
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a:Chrono/LabelPhraseEntity.py
     return temp_list
 

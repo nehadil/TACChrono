@@ -59,12 +59,20 @@ def buildDayOfWeek(s, chrono_id, chrono_list):
 # @return value The normalized string value for the day of week, or None if no Day of week found.
 # @ISSUE If there are multiple days of week in the temporal phrase it only captures one of them.
 def hasDayOfWeek(tpentity):
+<<<<<<< HEAD
     # print("Before:" + text)
+=======
+
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a
     # convert to all lower
     text_lower = tpentity.getText().lower()
     # remove all punctuation
     text_norm = text_lower.translate(str.maketrans("", "", string.punctuation))
+<<<<<<< HEAD
     # print("After:" + text_norm)
+=======
+
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a
     # convert to list
     text_list = text_norm.split(" ")
 
