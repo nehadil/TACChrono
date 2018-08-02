@@ -44,21 +44,30 @@ import string
 # @param start_span The location of the first character
 # @param end_span The location of the last character
 # @param pos The part of speech assigned to this token
+# @param doseunit A boolean indicating if the token is a dose unit
+# @param numeric A boolean indicating if the token is a numeric value
+# @para
 # @param temporal A boolean indicating if this token contains any temporal components
 # @param numericRange A boolean indicating if this token is a numeric range (0-12)
 # @param sent_boundary A boolean indicating if this token is at the end of a sentence or line
-class refToken :
+class refToken:
 
     ## The constructor
-    def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None, start_span=None, end_span=None, pos=None, temporal=None, numeric=None, sent_boundary=None) :
+    def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None,start_span=None, end_span=None,
+                 pos=None, temporal=None, doseunit=None, t6list=None, numeric=None, combdose=None,
+                 conjunction=None, sent_boundary=None) :
         self.id = id
         self.frequencyTransition=False
         self.text = text
         self.start_span = start_span
         self.end_span = end_span
         self.pos = pos
-        self.temporal = temporal
+        self.doseunit = doseunit
         self.numeric = numeric
+        self.t6list = t6list
+        self.combdose = combdose
+        self.temporal = temporal
+        self.conjunction = conjunction
         self.sent_boundary = sent_boundary
         self.numericRange = numericRange
         self.acronym= acronym
@@ -115,22 +124,39 @@ class refToken :
     #  @param pos The part of speech assigned to the token
     def setPos(self, pos) :
         self.pos = pos
+
+    def setConjunction(self, conjunction):
+        self.conjunction = conjunction
         
     ## Sets the entity's temporal flag
     #  @param temp A boolean, 1 if it is a temporal token, 0 otherwise
-    def setTemporal(self, temp) :
-        self.temporal = temp
+    def setDoseUnit(self, doseunit) :
+        self.doseunit = doseunit
+
+    def setCombdose(self, combdose):
+        self.combdose = combdose
     
     ## Sets the entity's numeric flag
     #  @param temp A boolean, 1 if it is a numeric token, 0 otherwise
     def setNumeric(self, num) :
         self.numeric = num
-    
+    def setTemporal(self, temp):
+        self.temporal = temp
+
+    ## Adds to the entities list of T6 entities
+    #  @param t6id an integer of the t6 entities ID
+    def t6Append(self, t6id) :
+        if self.t6list is None :
+            self.t6list = []
+            self.t6list.append(t6id)
+        else :
+            self.t6list.append(t6id)
+
+
     ## Sets the entity's sentence boundary flag
     #  @param temp A boolean, 1 if it is a numeric token, 0 otherwise
     def setSentBoundary(self, num) :
         self.sent_boundary = num
-
     #### Methods to GET properties ####
     
     ## Gets the entity's ID
@@ -157,10 +183,19 @@ class refToken :
     ## Gets the entity's temporal flag
     def isTemporal(self) :
         return(self.temporal)
+
+    def isDoseunit(self):
+        return(self.doseunit)
         
     ## Gets the entity's numeric flag
     def isNumeric(self) :
         return(self.numeric)
+
+    def isCombdose(self):
+        return self.combdose
+
+    def isConjunction(self):
+        return self.conjunction
 
     ## Gets the entity's t6list
     def getSentBoundary(self) :
@@ -218,6 +253,7 @@ def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=Non
             raise ValueError('sentence boundary flag array is not same length as token list.')
     
     for idx in range(0,tok_len):
+
         ref_list.append(refToken(id=id_counter, text=tok_list[idx], start_span=span[idx][0] if include[1] else None, end_span=span[idx][1] if include[1] else None, pos=pos[idx][1] if include[2] else None, temporal=temporal[idx] if include[3] else None, sent_boundary=sent_boundaries[idx] if include[4] else None))
         id_counter = id_counter +1
         
@@ -231,6 +267,17 @@ def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=Non
 # @param stopwords_path The file with stopwords, defaults to "./stopwords_short"
 # @return A list of refTokens in the same order as the input tok_list with stopwords removed
 
+def removeStopWords(tok_list, stopwords_path="./stopwords_short") :
+    with open(stopwords_path) as raw:
+        stopwords = raw.read().splitlines()
+
+
+    filtered_tokens = []
+    for tok in tok_list :
+        if tok.getText().lower() not in stopwords :
+            filtered_tokens.append(tok)
+    return filtered_tokens
+    
 
 ## Function to remove all punctuation from a list of refToken objects
 # @author Amy Olex

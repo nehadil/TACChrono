@@ -43,7 +43,11 @@ def buildAMPM(s, chrono_id, chrono_list, flags):
                 hour_val = m.group(0)
                 abs_Sspan = ref_Sspan + m.span(0)[0]
                 abs_Espan = ref_Sspan + m.span(0)[1]
+<<<<<<< HEAD
+                #print("Adding Hour in AMPM")
+=======
 
+>>>>>>> 82345f914e37efab9348b32a41496078ab99b14a
                 my_hour_entity = chrono.ChronoHourOfDayEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, value=hour_val, ampm=my_AMPM_entity.get_id())
                 chrono_id = chrono_id + 1
                 chrono_list.append(my_hour_entity)

@@ -1,4 +1,5 @@
-# Copyright (c) 2018 
+# coding=utf-8
+# Copyright (c) 2018
 # Amy L. Olex, Virginia Commonwealth University
 # alolex at vcu.edu
 #
@@ -44,6 +45,8 @@ from Chrono import temporalTest as tt
 import dateutil.parser
 # import datetime
 # from Chrono import TimePhrase_to_Chrono
+from Chrono import DosePhraseEntity as dp
+from Chrono import TimePhraseEntity as tp
 from Chrono import LabelPhraseEntity as tp
 import re
 import csv
@@ -70,6 +73,7 @@ def getWhitespaceTokens(file_path):
     spans = [span for span in span_generator]
     tokenized_text = WhitespaceTokenizer().tokenize(text)
     tags = nltk.pos_tag(tokenized_text)
+
 
     sent_tokenize_list = sent_tokenize(text)
     sent_boundaries = [0] * len(tokenized_text)
@@ -108,12 +112,18 @@ def getWhitespaceTokens(file_path):
 # @param chrono_list The list of Chrono objects needed to be written in the file.
 # @param outfile A string containing the output file location and name.
 def write_xml(chrono_list, outfile):
-    fout = open(outfile + ".completed.xml", "w")
-    fout.write("<data>\n<annotations>\n")
-    for c in chrono_list :
-        fout.write(str(c.print_xml()))
-    
-    fout.write("\n</annotations>\n</data>")
+    fout = open(outfile + ".ann", "w")
+    for c in chrono_list:
+        try:
+            fout.write(str(c.print_xml()) + "\n")
+        except:
+            try:
+                fout.write(str(c[0].print_xml()+"\n"))
+            except:
+                print("MISSION FAILED")
+                print(c[0])
+                print(c[1])
+
     fout.close()
  ####
  #END_MODULE
@@ -363,6 +373,49 @@ def markNotable(refToks):
         ref
     return refToks
 
+## Marks reference tokens that are dose-related (i.e., dose, dose units, conjunctions)
+# @author Neha Dil
+# @param refToks The list of reference tokens
+# @return modified list of reftoks
+
+def markDose(refToks):
+    i = 0
+    # Some tokens can be part of a dose phrase regardless of whether it on its own is a dose unit
+    # I use a flag to indicate whether the current token should be included as a dose unit
+    flag = False # indicates whether this word should counted as a dose unit regardless of its test results
+
+    while i < len(refToks):
+        if "diss" in refToks[i].getText() or "suspend" in refToks[i].getText() or "containing" in refToks[
+            i].getText():  # don't include solvents or solutes
+            opt1 = re.compile(r'\.$')
+            while (i < len(refToks) and "isomer" not in refToks[i].getText() and opt1.match(
+                    refToks[i].getText()) != None):
+                i = i + 1
+
+        if (i >= len(refToks)): break
+        if refToks[i].getText()=="and" or refToks[i].getText()=="or":
+            refToks[i].setConjunction(True)  # mark up conjunctions
+        if flag == True:  # means current token should be marked as dose unit
+            refToks[i].setDoseUnit(True)
+            refToks[i].setCombdose(False)
+            refToks[i].setNumeric(numericTest(refToks[i].getText(), refToks[i].getPos()))
+            flag=False
+        else:  # test if token is dose-related
+            temp, flag = unitTest(refToks[i].getText())
+            refToks[i].setDoseUnit(temp)
+            if flag != True:
+                temp2, flag= combdoseTest(refToks[i].getText())
+                if temp ==True:
+                    temp2=False
+            else:
+                temp2, fill = combdoseTest(refToks[i].getText())
+            refToks[i].setCombdose(temp2)
+            refToks[i].setNumeric(numericTest(refToks[i].getText(), refToks[i].getPos()))
+        i = i + 1
+
+
+    return refToks
+
 ## Marks all the reference tokens that are identified as temporal.
 # @author Amy Olex
 # @param refToks The list of reference Tokens
@@ -377,6 +430,102 @@ def isAcronym(tok):
 #END_MODULE
 ####
 
+## Tests to see if token contains both dose and dose unit and if the next token should be counted as a part of the unit phrase
+# @author Neha Dil
+# @param tok The token string
+# @returnBoolean True if token contains both dose and dose unit, False if not, followed by Boolean True if next token is part of the unit phrase, False if not
+
+
+def combdoseTest(tok):  # may have to fix later
+    token = re.sub(r'[!"\#$&()*+,\-.:;\'<=>?@\[\\\]^_`{|}~]', '', tok)
+
+    units = ["μl",
+             "μtrms",
+             "mtrms",
+             "µTrms",
+             "g",
+             "μw",
+             "NP",
+             "μg",
+             "bpa"
+             "kg",
+             "bw",
+             "ml",
+             #"μg/105 cells",
+             #"μg/25 μL",
+             #"μg/gland",
+             "kg",
+             "µg",
+             "µt",
+             "mt",
+             "pfus",
+             #"particles/cm3",
+             "m",
+             "ml",
+             "q",
+             "fu",
+             "y",
+             "mg",
+             "l"
+             "μm",
+             "mg",
+             "kgbw•d",
+             "kgbw",
+             "u",
+             "ml",
+             "ac",
+             "fus",
+             "lm",
+             "db",
+             "spl",
+             "ddt",
+             "m3",
+             "kpa",
+             "trms",
+             "ng",
+             "μg",
+             "np",
+             "bwt",
+             "l",
+             "moi",
+             "CFU",
+             "Bq",
+             "Gy",
+             "μL",
+             "μM",
+             "ppm",
+             "ppb",
+             "µg",
+             "pfus",
+             "pfu",
+             "pb",
+             "pm",
+             "μg"
+             "ng",
+             "wlm"]
+
+    pattern = re.compile('^\d+')
+    try:
+        token = re.sub(r'^\d+', "", token)
+        if "/" in token:
+            temp = re.sub(r'[0-9]', '', token)
+            words = temp.split("/")
+            for word in words:
+                for unit in units:
+                    if word == unit and words[len(words) - 1] == "":
+                        return True, True
+
+                    elif word == unit:
+                        return True, False
+        else:
+            for unit in units:
+                if token == unit:
+                    return True, False
+        return False, False
+    except:
+        return False, False
+
+
 ## Tests to see if the token is a number.
 # @author Amy Olex
 # @param tok The token string
@@ -386,11 +535,12 @@ def numericTest(tok, pos):
     if pos == "CD":
         return True
     else:
-        #remove punctuation
-        tok = tok.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).strip()
-    
-        #test for a number
-        #tok.strip(",.")
+        # remove punctuation
+        tok = tok.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).strip()
+        tok = re.sub("–", "", tok)
+        tok = re.sub(" ", "", tok)
+        # test for a number
+        # tok.strip(",.")
         val = getNumberFromText(tok)
         if val is not None:
             return True
@@ -442,6 +592,7 @@ def temporalTest(tok):
         return True, 2
     if tt.hasDayOfWeek(tok):
         return True, 3
+
     if tt.hasPeriodInterval(tok):
         return True, 4
     if tt.hasAMPM(tok):
@@ -458,6 +609,95 @@ def temporalTest(tok):
         return True, 10
     if tt.hasModifierText(tok):
         return True, 11
+    if tt.hasDoseDuration(tok):
+        return True
+
+## Tests to see if token is a unit and if the next token is a part of the unit phrase
+# @author Neha Dil
+# @param tok The token string
+# @return Boolean True if token is unit, False if not, followed by Boolean True if next token is part of the unit phrase, False if not
+def unitTest(tok):
+    tok = re.sub(r'[!"\#$&()*+,\-.:;\'<=>?@\[\\\]^_`{|}~]', '', tok)  # removes all punctuation except for "/"
+    tok = tok.lower()
+    units = ["μl",  # list of possible units
+             "μtrms",
+             "mtrms",
+             "g",
+             "μw",
+             "μg",
+             "CFU",
+             "bpa"
+             "kg",
+             "bw",
+             "ml",
+             #"μg/105 cells",
+             #"μg/25 μL",
+             #"μg/gland",
+             "kg",
+             "µg",
+             "µt",
+             "mt",
+             "pfus",
+             "NP",
+             #"particles/cm3",
+             "m",
+             "ml",
+             "q",
+             "fu",
+             "y",
+             "mg",
+             "l"
+             "μm",
+             "mg",
+             "kgbw•d",
+             "kgbw",
+             "u",
+             "ml",
+             "ac",
+             "fus",
+             "μM",
+             "μm",
+             "μg",
+             "lm",
+             "db",
+             "spl",
+             "ddt",
+             "m3",
+             "kpa",
+             "trms",
+             "ng"
+             "np",
+             "bwt",
+             "μL",
+             "l",
+             "Bq",
+             "Gy",
+             "moi",
+             "ppm",
+             "ppb",
+             "µg",
+             "pfus",
+             "pfu",
+             "pb",
+             "pm",
+             "μg"
+             "ng",
+             "wlm"]
+    #print(set("µg") & set(tok))
+    if "/" in tok and not re.match(r"^\d", tok):  # if there's a '/' in the unit, evaluate each piece individually
+        temp = re.sub(r'[0-9]', '', tok)  # remove numbers
+        words = temp.split("/")
+        for word in words:  # if one piece is a unit, the whole token is a unit
+            for unit in units:
+                if word == unit and words[len(words)-1]=="":  # if the last piece is empty, that means it was a number
+                    return True, True  # if the last piece was a number, then the next token should be a part of the unit phrase
+                elif word==unit:
+                    return True, False
+    else:  # if there's no "/" in the token, treat the token as a single piece
+        for unit in units:
+            if tok == unit:
+                return True, False
+    return False, False
 
 ####
 #END_MODULE
@@ -477,11 +717,61 @@ def getTemporalPhrases(chroList):
     inphrase = False
     for n in range(0,len(chroList)):
         if chroList[n].isTemporal():
-            print(chroList[n].getText() +"is temporal");
+            #print("Is Temporal: " + str(chroList[n]))
+            if not inphrase:
+                inphrase = True
+            #in phrase, so add new element
+            tmpPhrase.append(copy.copy(chroList[n]))
+            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
+            # if this is the last token of the file, end the phrase.
+            if n == len(chroList)-1:
+                if inphrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
+            else:
+                s1, e1 = chroList[n].getSpan()
+                s2, e2 = chroList[n + 1].getSpan()
+                if e1 + 1 != s2 and inphrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
+                
+            
         elif chroList[n].isNumeric():
-            print(chroList[n].getText() +"is numeric");
-        elif chroList[n].isNumericRange():
-            print(chroList[n].getText() +"is a range");
+            #print("Not Temporal, but Numeric: " + str(chroList[n]))
+            #if the token has a dollar sign or percent sign do not count it as temporal
+            m = re.search('[#$%]', chroList[n].getText())
+            if m is None:
+                #print("No #$%: " + str(chroList[n]))
+                #check for the "million" text phrase
+                answer = next((m for m in ["million", "billion", "trillion"] if m in chroList[n].getText().lower()), None)
+                if answer is None:
+                    #print("No million/billion/trillion: " + str(chroList[n]))
+                    if not inphrase:
+                        inphrase = True
+                    #in phrase, so add new element
+                    tmpPhrase.append(copy.copy(chroList[n]))
+            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
+            # if this is the last token of the file, end the phrase.
+            if n == len(chroList)-1:
+                if inphrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
+            else:
+                s1, e1 = chroList[n].getSpan()
+                s2, e2 = chroList[n + 1].getSpan()
+                if e1 + 1 != s2 and inphrase:
+                    # print("has new line: " + str(chroList[n]))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inphrase = False
+
         else:
             if inphrase:
                 inphrase = False
@@ -503,6 +793,47 @@ def getTemporalPhrases(chroList):
             
     return phrases
 
+
+def getDosePhrases(chroList, doctime):
+    # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
+
+    phrases = []  # the empty phrases list of TimePhrase entities
+    dosePhrase = []  # the temporary phrases list.
+    counter = 1
+    for n in range(0, len(chroList)):
+        if (chroList[n].isCombdose()):
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+                dosePhrase = []
+            dosePhrase.append(copy.copy(chroList[n]))
+        elif (chroList[n].isNumeric()):
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+                dosePhrase = []
+
+            dosePhrase.append(copy.copy(chroList[n]))
+        elif (chroList[n].isDoseunit()):
+            if (len(dosePhrase) > 0):
+                dosePhrase.append(copy.copy(chroList[n]))
+        elif (chroList[n].isConjunction() and len(dosePhrase)>0):
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+            dosePhrase.append(copy.copy(chroList[n]))
+        else:
+            if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
+                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                counter = counter + 1
+            dosePhrase = []
+    if (len(dosePhrase) >= 1):
+        if dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose():
+            phrases.append(createDPEntity(dosePhrase, counter, doctime))
+
+    return phrases
+
+
 ####
 #END_MODULE
 #### 
@@ -522,6 +853,29 @@ def createTPEntity(items, counter):
         text = text + ' ' + i.getText()
     
     return tp.LabelPhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None)
+
+
+
+
+
+
+
+
+
+def createDPEntity(items, counter, doctime):
+    start_span, tmp = items[0].getSpan()
+    tmp, end_span = items[len(items) - 1].getSpan()
+    allspans = []
+    text = ""
+    for i in items:
+        allspans.append(i.getSpan())
+        if (len(text) > 0 and text[len(text) - 1] != "/"):
+            text += ' '
+        text += i.getText()
+
+    return dp.DosePhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None,
+                               tempvalue=None, doctime=doctime, allspans=allspans)
+
 
 ####
 #END_MODULE
