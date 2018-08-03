@@ -81,13 +81,14 @@ if __name__ == "__main__":
     outdirs = []
     for root, dirs, files in os.walk(args.i, topdown = True):
        for name in dirs:
-          print(os.path.join(root,name))
-          indirs.append(os.path.join(root, name))
-          infiles.append(os.path.join(root,name,name))
-          outfiles.append(os.path.join(args.o,name,name))
-          outdirs.append(os.path.join(args.o,name))
-          if not os.path.exists(os.path.join(args.o,name)):
-              os.makedirs(os.path.join(args.o,name))
+           print (root + name)
+           print(os.path.join(root,name))
+           indirs.append(os.path.join(root, name))
+           infiles.append(os.path.join(root,name,name))
+           outfiles.append(os.path.join(args.o,name,name))
+           outdirs.append(os.path.join(args.o,name))
+           if not os.path.exists(os.path.join(args.o,name)):
+               os.makedirs(os.path.join(args.o,name))
     
     ## Get training data for ML methods by importing pre-made boolean matrix
     ## Train ML methods on training data

@@ -363,8 +363,9 @@ def get_features(data_file):
 # @return modified list of reftoks
 def markNotable(refToks):
     for ref in refToks:
+        print(ref.getText())
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
-        boole, tID =(temporalTest(ref.getText()))
+        boole, tID =temporalTest(ref.getText())
         ref.setTemporal(boole)
         ref.setTemporalType(tID)
         ref.setNumericRange(isNumericRange(ref.getText()))
