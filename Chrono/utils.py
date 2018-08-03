@@ -46,7 +46,6 @@ import dateutil.parser
 # import datetime
 # from Chrono import TimePhrase_to_Chrono
 from Chrono import DosePhraseEntity as dp
-from Chrono import TimePhraseEntity as tp
 from Chrono import LabelPhraseEntity as tp
 import re
 import csv
