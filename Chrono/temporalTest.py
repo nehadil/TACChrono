@@ -80,15 +80,16 @@ def hasDayOfWeek(text):
     
     #Note: I took out converting to lower case because the capitilazation adds information for day of week mentions.
     #remove all commas
-    text_norm = text.lower().strip()
-    text__norm = re.sub('[' + string.punctuation + ']', '', text_norm)
+
+    text = text.lower().strip()
+    text = re.sub('[' + string.punctuation + ']', '', text)
+    text_norm=text.split(" ")
     #convert to list
     #text_list = text_norm.split(" ")
     
     #define my day lists
     full_day = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
-    abbr_day = ["mon","tues","wed","thurs","fri","sat","sun", "mo", "tu", "we", "th", "fr", "sa", "su"]
-
+    abbr_day = ["mon","tues","wed","thurs","fri","sat","sun", "mo", "tu", "we", "th", "fr", "sa", "su", "mowefr"]
     answer = next((m for m in full_day if m in text_norm), None)
     if answer is not None:
         return True
@@ -115,7 +116,6 @@ def hasPeriodInterval(text):
     text_norm = text_lower.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation)))
     #convert to list
     text_list = text_norm.split(" ")
-    
     #define my period lists
     terms = ["decades", "decade", "yesterday", "yesterdays", "today", "todays", "tomorrow", "tomorrows", "day", "week",
              "month", "year", "daily", "weekly", "monthly", "yearly", "century", "minute", "second", "hour", "hourly", 

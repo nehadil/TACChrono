@@ -51,7 +51,6 @@ import string
 # @param numericRange A boolean indicating if this token is a numeric range (0-12)
 # @param sent_boundary A boolean indicating if this token is at the end of a sentence or line
 class refToken:
-
     ## The constructor
     def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None,start_span=None, end_span=None,
                  pos=None, temporal=None, doseunit=None, t6list=None, numeric=None, combdose=None,
@@ -164,8 +163,10 @@ class refToken:
     def setSentBoundary(self, num) :
         self.sent_boundary = num
     #### Methods to GET properties ####
-    def isFreqComp(self):
-        return self.frequencyTransition or self.temporal or \
+    def isFreqComp(self, deb=False):
+        if (deb): print("WordStats ("+self.text+"):" +str(self.frequencyTransition)+" "+str(self.temporal)+" " +(str(self.temporalType)+" " if self.temporal else "") +\
+               str(self.acronym)+" "+str(self.numericRange)+" "+str(self.numeric)+" "+str(self.freqModifier)+"\n\n")
+        return self.frequencyTransition or self.temporal or\
                self.acronym or self.numericRange or self.numeric or self.freqModifier
 
     ## returns whether the entity is a frequencymodifier
@@ -265,7 +266,6 @@ def convertToRefTokens(tok_list, id_counter=0, span=None, pos=None, temporal=Non
             raise ValueError('sentence boundary flag array is not same length as token list.')
     
     for idx in range(0,tok_len):
-
         ref_list.append(refToken(id=id_counter, text=tok_list[idx], start_span=span[idx][0] if include[1] else None, end_span=span[idx][1] if include[1] else None, pos=pos[idx][1] if include[2] else None, temporal=temporal[idx] if include[3] else None, sent_boundary=sent_boundaries[idx] if include[4] else None))
         id_counter = id_counter +1
         

@@ -55,7 +55,7 @@ from Chrono import utils
 # @return List of Chrono entities and the ChronoID
 from Chrono.TimePhraseToChrono import DoseDuration
 
-def buildChronoList(TimePhraseList, chrono_id, ref_list, PIclassifier, PIfeatures, dct=None):
+def buildChronoList(TimePhraseList, chrono_id, ref_list, PIclassifier, PIfeatures, ):
     chrono_list = []
     
     ## Do some further pre-processing on the ref token list
@@ -65,38 +65,21 @@ def buildChronoList(TimePhraseList, chrono_id, ref_list, PIclassifier, PIfeature
     ref_list = referenceToken.lowercase(ref_list)
     
     for s in TimePhraseList:
-        print(s)
         chrono_tmp_list = []
         
         # this is the new chrono time flags so we don't duplicate effort.  Will ned to eventually re-write this flow.
         # The flags are in the order: [loneDigitYear, month, day, hour, minute, second]
-        chrono_time_flags = {"loneDigitYear":False, "month":False, "day":False, "hour":False, "minute":False, "second":False, "fourdigityear":False, "twodigityear":False}
-        
-        #Parse out Year function
-        #chrono_tmp_list, chrono_id, chrono_time_flags = MonthYear.buildYear(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out Two-Digit Year 
-        #chrono_tmp_list, chrono_id, chrono_time_flags = MonthYear.build2DigitYear(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out Month-of-Year
-        #chrono_tmp_list, chrono_id, chrono_time_flags = MonthYear.buildMonthOfYear(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out Day-of-Month
-        #chrono_tmp_list, chrono_id, chrono_time_flags = DayOfMonth.buildDayOfMonth(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out HourOfDay
-        #chrono_tmp_list, chrono_id, chrono_time_flags = HourOfDay.buildHourOfDay(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out MinuteOfHour
-        #chrono_tmp_list, chrono_id, chrono_time_flags = MinuteOfHour.buildMinuteOfHour(s, chrono_id, chrono_tmp_list, chrono_time_flags)
-        #Parse out SecondOfMinute
-        #chrono_tmp_list, chrono_id, chrono_time_flags = SecondOfMinute.buildSecondOfMinute(s, chrono_id, chrono_tmp_list, chrono_time_flags)
+
 
         
 
         chrono_tmp_list, chrono_id = DoseDuration.buildDoseDuration(s, chrono_id, chrono_tmp_list, ref_list, PIclassifier, PIfeatures)
+        chrono_tmp_list, chrono_id = buildFrequency(s, chrono_id, chrono_tmp_list, ref_list)
 
 
-        chrono_time_flags = {}
-
-
-        tmplist, chrono_id = buildSubIntervals(chrono_tmp_list, chrono_id, dct, ref_list)
-        chrono_list = chrono_list+tmplist
+        # tmplist, chrono_id = buildSubIntervals(chrono_tmp_list, chrono_id, dct, ref_list)
+        chrono_list = chrono_list+chrono_tmp_list
+        chrono_tmp_list=[]
 
       
     return chrono_list, chrono_id
@@ -104,6 +87,10 @@ def buildChronoList(TimePhraseList, chrono_id, ref_list, PIclassifier, PIfeature
 ####
 #END_MODULE
 ####
+def buildFrequency(s, chrono_id, chrono_tmp_list, ref_list):
+    chrono_tmp_list.append(chrono.ChronoFrequencyEntity(id=str(chrono_id) + "entity", label="Frequency",span=s.getSpan(), text=s.getText()))
+    chrono_id+=1
+    return chrono_tmp_list, chrono_id
 
 ## Takes in list of ChronoEntities and identifies sub-intervals within the list
 # @author Amy Olex

@@ -1,7 +1,11 @@
 # Copyright (c) 2018 
 # Amy L. Olex, Virginia Commonwealth University
 # alolex at vcu.edu
-#
+# ONE 1 II
+# ONE 1 II
+# ONE 1 II
+
+
 # Luke Maffey, Virginia Commonwealth University
 # maffeyl at vcu.edu
 #
@@ -81,8 +85,8 @@ if __name__ == "__main__":
     outdirs = []
     for root, dirs, files in os.walk(args.i, topdown = True):
        for name in dirs:
-           print (root + name)
-           print(os.path.join(root,name))
+           print (root)
+           print(name)
            indirs.append(os.path.join(root, name))
            infiles.append(os.path.join(root,name,name))
            outfiles.append(os.path.join(args.o,name,name))
@@ -160,6 +164,7 @@ if __name__ == "__main__":
     
         chroList = utils.markNotable(my_refToks)
         tempPhrases = utils.getTemporalPhrases(chroList)
+        #dosePhrases = utils.getDosePhrases()
 
         chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
                                                                                  my_chrono_ID_counter, chroList,
