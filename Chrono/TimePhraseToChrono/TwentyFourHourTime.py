@@ -19,7 +19,6 @@ def build24HourTime(s, chrono_id, chrono_list, flags):
             hour = int(val[0:2])
             minute = int(val[2:4])
         except ValueError:
-
             return chrono_list, chrono_id, flags
             # hour = w2n.number_formation(val[0:2])
             # minute = w2n.word_to_num(val[2:4])
@@ -58,7 +57,7 @@ def build24HourTime(s, chrono_id, chrono_list, flags):
 
     return chrono_list, chrono_id, flags
 
-def
+
 
 ## Takes in a single text string and identifies if it has any 4 digit 24-hour time phrases
 # @author Amy Olex

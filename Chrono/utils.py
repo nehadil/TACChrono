@@ -102,7 +102,6 @@ def getWhitespaceTokens(file_path):
 
     return text, tokenized_text, spans, tags, sent_boundaries
 
-
 ## Reads in the dct file and converts it to a datetime object.
 # @author Amy Olex
 # @param file_path The path and file name of the dct file.
@@ -179,6 +178,7 @@ def compoundPhrase(text, dosePhrases):
                     dose.setSpan(dose.getSpan()[0], len(dose.getText()))
                     break
     return dosePhrases
+
 
 
 ####
@@ -387,6 +387,7 @@ def get_features(data_file):
 # @return modified list of reftoks
 def markNotable(refToks):
     markDose(refToks)
+
     for ref in refToks:
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
         boole, tID =(temporalTest(ref.getText()))
@@ -742,6 +743,8 @@ def getTemporalPhrases(chroList):
     tmpPhrase = [] #the temporary phrases list.
     inphrase = False
 
+
+    """
     for n in range(0,len(chroList)):
         if chroList[n].isTemporal():
             #print("Is Temporal: " + str(chroList[n]))
@@ -814,6 +817,9 @@ def getTemporalPhrases(chroList):
                     tmpPhrase = []
                 else:
                     tmpPhrase = []
+
+    """
+
             
     return phrases
 
