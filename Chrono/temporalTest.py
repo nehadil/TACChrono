@@ -41,6 +41,7 @@ import string
 import re
 from Chrono import utils
 
+
 ## Takes in a single text string and identifies if it is a month of the year
 # @author Amy Olex
 # @param text The text to parse
@@ -67,7 +68,6 @@ def hasTextMonth(text):
         else:
             return False
 
-    
 ####
 #END_MODULE
 ####
@@ -326,7 +326,7 @@ def hasPartOfDay(text):
     text_list = text_norm.split(" ")
     
     #define my part of day lists
-    partofday = ["morning","breakfast","lunch", "dinner", "evening","afternoon","night","nights","mornings","evening","afternoons","noon","bedtime"]
+    partofday = ["morning","breakfast","lunch", "dinner", "evening","afternoon","night","nights","mornings","evening","afternoons","noon","bedtime", "meals"]
     
     for t in text_list:
         answer = next((m for m in partofday if m in t), None)

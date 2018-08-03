@@ -71,6 +71,7 @@ class refToken:
         self.sent_boundary = sent_boundary
         self.numericRange = numericRange
         self.acronym= acronym
+        self.freqModifier=False;
         self.temporalType=temporalType
     ## Defines how to convert a refToken to string
     def __str__(self) :
@@ -89,6 +90,11 @@ class refToken:
     #  @param id The ID to set it to
     def setID(self, id) :
         self.id = id
+
+    ## Sets whether the entity is a frequencymodifier
+    #  @param boole the boolean value (true if it is, false if it isn't)
+    def setFreqModifier(self, boole):
+        self.freqModifier=boole
     ## Sets whether or not the current refTok represents a numeric range (8-10), etc for Frequency checking
     #  @param b The boolean value to set NumericRange to
     def setNumericRange(self, b) :
@@ -158,8 +164,14 @@ class refToken:
     def setSentBoundary(self, num) :
         self.sent_boundary = num
     #### Methods to GET properties ####
-    
-    ## Gets the entity's ID
+    def isFreqComp(self):
+        return self.frequencyTransition or self.temporal or \
+               self.acronym or self.numericRange or self.numeric or self.freqModifier
+
+    ## returns whether the entity is a frequencymodifier
+    def isFreqModifier(self):
+        return self.freqModifier
+
     def isAcronym(self):
         return self.acronym
     def getTemporalType(self):

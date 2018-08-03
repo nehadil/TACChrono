@@ -370,7 +370,7 @@ def markNotable(refToks):
         ref.setTemporalType(tID)
         ref.setNumericRange(isNumericRange(ref.getText()))
         ref.setAcronym(isAcronym(ref.getText()))
-        ref
+        ref.setFreqModifier(isFreqModifier(ref.getText()))
     return refToks
 
 ## Marks reference tokens that are dose-related (i.e., dose, dose units, conjunctions)
@@ -421,11 +421,15 @@ def markDose(refToks):
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
 def isAcronym(tok):
-    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w", "q"];
+    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w", "q", "asdir"];
     tok = re.sub('['+string.punctuation+']', '', tok).strip()
     tok=tok.lower();
     return tok in acronyms
-
+def isFreqModifier(tok):
+    modifiers=["if", "once", "twice", "times", "time", "per", "each", "every", "daily", "nightly", "at", "as", "ongoing", "every other day"]
+    tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
+    tok = tok.lower()
+    return tok in modifiers
 ####
 #END_MODULE
 ####
@@ -584,7 +588,6 @@ def temporalTest(tok):
 
 
     #look for time patterns hh:mm:ss
-
     m = re.search('([0-9]{2}:[0-9]{2}:[0-9]{2})', tok)
     if m is not None:
         return True, 1
@@ -592,7 +595,6 @@ def temporalTest(tok):
         return True, 2
     if tt.hasDayOfWeek(tok):
         return True, 3
-
     if tt.hasPeriodInterval(tok):
         return True, 4
     if tt.hasAMPM(tok):
@@ -610,7 +612,7 @@ def temporalTest(tok):
     if tt.hasModifierText(tok):
         return True, 11
     if tt.hasDoseDuration(tok):
-        return True
+        return True, -1
 
 ## Tests to see if token is a unit and if the next token is a part of the unit phrase
 # @author Neha Dil
@@ -715,6 +717,19 @@ def getTemporalPhrases(chroList):
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inphrase = False
+    for n in range(0, len(chroList)):
+        if chroList[n].isFreqComp():
+            inPhrase=True;
+            tmpPhrase.append(copy.copy(chroList[n]))
+        elif inPhrase:
+            inPhrase=False
+            phrases.append(tmpPhrase)
+            print ("<Phrase>")
+            for ref in tmpPhrase:
+                print(ref.getText()+ " ")
+            print("</Phrase>")
+            tmpPhrase=[]
+    """
     for n in range(0,len(chroList)):
         if chroList[n].isTemporal():
             #print("Is Temporal: " + str(chroList[n]))
@@ -741,11 +756,9 @@ def getTemporalPhrases(chroList):
                 
             
         elif chroList[n].isNumeric():
-            #print("Not Temporal, but Numeric: " + str(chroList[n]))
             #if the token has a dollar sign or percent sign do not count it as temporal
             m = re.search('[#$%]', chroList[n].getText())
             if m is None:
-                #print("No #$%: " + str(chroList[n]))
                 #check for the "million" text phrase
                 answer = next((m for m in ["million", "billion", "trillion"] if m in chroList[n].getText().lower()), None)
                 if answer is None:
@@ -789,7 +802,7 @@ def getTemporalPhrases(chroList):
                     tmpPhrase = []
                 else:
                     tmpPhrase = []
-        
+    """
             
     return phrases
 
