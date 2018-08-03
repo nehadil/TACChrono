@@ -58,6 +58,7 @@ def build24HourTime(s, chrono_id, chrono_list, flags):
 
     return chrono_list, chrono_id, flags
 
+def
 
 ## Takes in a single text string and identifies if it has any 4 digit 24-hour time phrases
 # @author Amy Olex

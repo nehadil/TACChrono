@@ -159,6 +159,28 @@ def getNumberFromText(text):
     except ValueError:
         number = isOrdinal(text)
     return number
+
+def compoundPhrase(text, dosePhrases):
+    nlp = spacy.load('en_core_web_sm')
+    doc = nlp(text)
+    chunks = []
+    for chunk in doc.noun_chunks:
+        chunks.append(chunk.text)
+    for dose in dosePhrases:
+        for chunk in chunks:
+            if dose.getText() in chunk and ("bw" in chunk.lower() or "b.w" in chunk.lower() or "body" in chunk.lower()):
+                startpoint = text.find(chunk)
+                endpoint = startpoint + len(chunk)
+                if dose.getSpan()[0] >= startpoint and dose.getSpan()[1] <= endpoint:
+                    start = chunk.find(dose.getText())
+                    end = start + len(dose.getText())
+                    rest = chunk[end:]
+                    dose.setText(dose.getText() + rest)
+                    dose.setSpan(dose.getSpan()[0], len(dose.getText()))
+                    break
+    return dosePhrases
+
+
 ####
 #END_MODULE
 ####  
@@ -364,6 +386,7 @@ def get_features(data_file):
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
 def markNotable(refToks):
+    markDose(refToks)
     for ref in refToks:
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
         boole, tID =(temporalTest(ref.getText()))
@@ -718,19 +741,7 @@ def getTemporalPhrases(chroList):
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inphrase = False
-    for n in range(0, len(chroList)):
-        if chroList[n].isFreqComp():
-            inPhrase=True;
-            tmpPhrase.append(copy.copy(chroList[n]))
-        elif inPhrase:
-            inPhrase=False
-            phrases.append(tmpPhrase)
-            print ("<Phrase>")
-            for ref in tmpPhrase:
-                print(ref.getText()+ " ")
-            print("</Phrase>")
-            tmpPhrase=[]
-    """
+
     for n in range(0,len(chroList)):
         if chroList[n].isTemporal():
             #print("Is Temporal: " + str(chroList[n]))
@@ -803,12 +814,11 @@ def getTemporalPhrases(chroList):
                     tmpPhrase = []
                 else:
                     tmpPhrase = []
-    """
             
     return phrases
 
 
-def getDosePhrases(chroList, doctime):
+def getDosePhrases(chroList):
     # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
 
     phrases = []  # the empty phrases list of TimePhrase entities

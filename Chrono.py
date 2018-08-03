@@ -1,7 +1,7 @@
 # Copyright (c) 2018 
 # Amy L. Olex, Virginia Commonwealth University
 # alolex at vcu.edu
-#
+# ONE 1 I 
 # Luke Maffey, Virginia Commonwealth University
 # maffeyl at vcu.edu
 #
@@ -159,6 +159,7 @@ if __name__ == "__main__":
     
         chroList = utils.markNotable(my_refToks)
         tempPhrases = utils.getTemporalPhrases(chroList)
+        dosePhrases = utils.getDosePhrases()
 
         chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
                                                                                  my_chrono_ID_counter, chroList,
