@@ -67,20 +67,12 @@ kfold_files_new_official.csv
 official_train_MLmatrix_Win3_012618_class.csv
 official_train_MLmatrix_Win3_012618_data.csv
 runit.sh
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
+
 *.xml
 Chrono_SemEval2018_PostEvalSubmission_NB_NewswireModel_060818/Chrono_TempEval2018_PostEvalSubmission_NB_060818.zip
 *.tiff
->>>>>>> 1dd01cf40e00721573f8b14747b4507d96540b41
-=======
->>>>>>> 83c7efe977f423b2a9706d77e3b6ebf8cbc1dcc6
-=======
 *.xml
 Chrono_SemEval2018_PostEvalSubmission_NB_NewswireModel_060818/Chrono_TempEval2018_PostEvalSubmission_NB_060818.zip
 *.tiff
 *.dct
 SemEval-OfficialTrain/*
->>>>>>> 82345f914e37efab9348b32a41496078ab99b14a

@@ -102,7 +102,6 @@ def getWhitespaceTokens(file_path):
 
     return text, tokenized_text, spans, tags, sent_boundaries
 
-def 
 
 ## Reads in the dct file and converts it to a datetime object.
 # @author Amy Olex
