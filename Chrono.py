@@ -49,6 +49,7 @@ from Chrono import referenceToken
 from Chrono import utils
 from keras.models import load_model
 
+
 debug=False
 ## This is the driver method to run all of Chrono.
 # @param INDIR The location of the directory with all the files in it.
@@ -158,9 +159,10 @@ if __name__ == "__main__":
     
         chroList = utils.markNotable(my_refToks)
         tempPhrases = utils.getTemporalPhrases(chroList)
-    
 
-    
+        chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
+                                                                                 my_chrono_ID_counter, chroList,
+                                                                                 (classifier, args.m), feats)
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
