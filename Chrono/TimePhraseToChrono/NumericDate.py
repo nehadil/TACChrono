@@ -17,11 +17,7 @@ def buildNumericDate(s, chrono_id, chrono_list, flags):
     text_lower = s.getText().lower()
     # remove all punctuation
     # text_norm = text_lower.translate(str.maketrans("", "", string.punctuation))
-<<<<<<< HEAD
-    # print("After:" + text_norm)
-=======
 
->>>>>>> 82345f914e37efab9348b32a41496078ab99b14a
     # convert to list
     text_norm = text_lower.strip(".,")
     text_list = text_norm.split(" ")
@@ -35,11 +31,7 @@ def buildNumericDate(s, chrono_id, chrono_list, flags):
             if num is not None:
                 if (num >= 1500) and (num <= 2050) and not flags["fourdigityear"] and not flags["loneDigitYear"]:
                     flags["loneDigitYear"] = True
-<<<<<<< HEAD
-                    # print("Found Lone Digit Year")
-=======
 
->>>>>>> 82345f914e37efab9348b32a41496078ab99b14a
                     ## build year
                     ref_StartSpan, ref_EndSpan = s.getSpan()
                     start_idx, end_idx = re.search(text, s.getText()).span(0)
