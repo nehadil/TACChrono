@@ -44,7 +44,7 @@ import dateutil.parser
 # import datetime
 # from Chrono import TimePhrase_to_Chrono
 from Chrono import DosePhraseEntity as dp
-from Chrono import TimePhraseEntity as tp
+from Chrono import LabelPhraseEntity as tp
 import re
 import csv
 from collections import OrderedDict
@@ -833,7 +833,7 @@ def createTPEntity(items, counter, doctime):
     for i in items:
         text = text + ' ' + i.getText()
 
-    return tp.TimePhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None,
+    return tp.LabelPhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None,
                                tempvalue=None, doctime=doctime)
 
 
