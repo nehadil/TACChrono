@@ -165,6 +165,10 @@ if __name__ == "__main__":
         chroList = utils.markNotable(my_refToks)
         tempPhrases = utils.getTemporalPhrases(chroList)
         #dosePhrases = utils.getDosePhrases()
+        with open("/home/garnt/Documents/Chrodeb.out", "w") as debOut:
+            debOut.write("Phrases: "+str(len(tempPhrases))+"\n")
+            for phrase in tempPhrases:
+                debOut.write(phrase.getText()+"\n")
 
         chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
                                                                                  my_chrono_ID_counter, chroList,
@@ -172,5 +176,3 @@ if __name__ == "__main__":
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
-    
-    

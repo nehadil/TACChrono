@@ -66,6 +66,7 @@ class refToken:
         self.t6list = t6list
         self.combdose = combdose
         self.temporal = temporal
+        self.qInterval= False
         self.conjunction = conjunction
         self.sent_boundary = sent_boundary
         self.numericRange = numericRange
@@ -90,6 +91,10 @@ class refToken:
     def setID(self, id) :
         self.id = id
 
+    ## Sets whether the entity is a qInterval
+    #  @param boole the boolean value (true if it is, false if it isn't)
+    def setQInterval(self, boole):
+        self.qInterval=boole
     ## Sets whether the entity is a frequencymodifier
     #  @param boole the boolean value (true if it is, false if it isn't)
     def setFreqModifier(self, boole):
@@ -163,16 +168,20 @@ class refToken:
     def setSentBoundary(self, num) :
         self.sent_boundary = num
     #### Methods to GET properties ####
-    def isFreqComp(self, deb=False):
-        if (deb): print("WordStats ("+self.text+"):" +str(self.frequencyTransition)+" "+str(self.temporal)+" " +(str(self.temporalType)+" " if self.temporal else "") +\
-               str(self.acronym)+" "+str(self.numericRange)+" "+str(self.numeric)+" "+str(self.freqModifier)+"\n\n")
+    def isFreqComp(self):
+        if self.doseunit or self.combdose: #don't want to capture doseunits which may precede frequencies
+            return False
         return self.frequencyTransition or self.temporal or\
-               self.acronym or self.numericRange or self.numeric or self.freqModifier
+               self.acronym or self.numericRange or self.numeric or self.freqModifier or self.qInterval
+    ## Returns a string for Frequency debugging
+    def getFreqDebug(self):
+        return self.text + " " + str(self.frequencyTransition) + " " + str(self.temporal) + " "+str(self.acronym) + " " +\
+               str(self.numericRange) + " " + str(self.numeric) + " " + str(self.freqModifier) + " " + str(self.qInterval)+ " "+ self.pos
 
-    ## returns whether the entity is a frequencymodifier
     def isFreqModifier(self):
         return self.freqModifier
-
+    def isQInterval(self):
+        return self.qInterval
     def isAcronym(self):
         return self.acronym
     def getTemporalType(self):

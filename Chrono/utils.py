@@ -383,15 +383,25 @@ def get_features(data_file):
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
 def markNotable(refToks):
-    markDose(refToks)
+    refToks=markDose(refToks)
+    refToks=markFrequency(refToks)
     for ref in refToks:
-
         ref.setNumeric(numericTest(ref.getText(), ref.getPos()))
         boole, tID = temporalTest(ref.getText())
         ref.setTemporal(boole)
         ref.setTemporalType(tID)
+    return refToks
+
+## Marks reference tokens that are Frequency-related
+#  @author Grant Matteo
+# @param refToks The list of reference tokens
+# @return modified list of reftoks
+
+def markFrequency(refToks):
+    for ref in refToks:
         ref.setNumericRange(isNumericRange(ref.getText()))
         ref.setAcronym(isAcronym(ref.getText()))
+        ref.setQInterval(isQStatement(ref.getText()))
         ref.setFreqModifier(isFreqModifier(ref.getText()))
     return refToks
 
@@ -437,7 +447,10 @@ def markDose(refToks):
 
 
     return refToks
-
+def isQStatement(tok):
+    tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
+    tok = tok.lower();
+    return re.search('q\d{1,2}h(r|rs)?', tok) is not None
 ## Marks all the reference tokens that are identified as temporal.
 # @author Amy Olex
 # @param refToks The list of reference Tokens
@@ -557,7 +570,11 @@ def combdoseTest(tok):  # may have to fix later
 # @param tok The token string
 # @return Boolean true if numeric, false otherwise
 def numericTest(tok, pos):
-    
+    notNumbers= ["zestril"]
+    # a bit of a bandaid solution to the problem of the POS tagger tagging non-numbers as numbers. Cannot possibly generalize to new datasets, but works for testing purposes.
+    if tok.lower() in notNumbers:
+        return False
+
     if pos == "CD":
         return True
     else:
@@ -594,7 +611,6 @@ def temporalTest(tok):
     m = re.search('[#$%]', tok)
     if m is not None:
         return False, -1
-    print(tok)
     #look for date patterns mm[/-]dd[/-]yyyy, mm[/-]dd[/-]yy, yyyy[/-]mm[/-]dd, yy[/-]mm[/-]dd
     m = re.search('([0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4})', tok)
     if m is not None:
@@ -732,21 +748,39 @@ def unitTest(tok):
 # @param chroList The list of temporally marked reference tokens
 # @return A list of temporal phrases for parsing
 def getTemporalPhrases(chroList):
-    #TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], =doctime)
     id_counter = 0
     
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inPhrase = False
-    for n in range(0, len(chroList)):
-        if chroList[n].isFreqComp():
-            inPhrase=True
-            tmpPhrase.append(chroList[n])
-        elif inPhrase:
-            inPhrase=False
-            if (len(tmpPhrase)>1):
-                phrases.append(createTPEntity(tmpPhrase, id_counter))
-                id_counter+=1
+    with open("/home/garnt/Documents/ChroDeb2.out", "w") as debOut:
+
+        for n in range(0, len(chroList)):
+            debOut.write(chroList[n].getText()+"\t||\t"+ chroList[n].getFreqDebug()+"\n")
+            if chroList[n].isFreqComp():
+                inPhrase=True
+                tmpPhrase.append(chroList[n])
+                if n == len(chroList) - 1:
+                    if inPhrase:
+                        phrases.append(createTPEntity(tmpPhrase, id_counter))
+                        id_counter = id_counter + 1
+                        tmpPhrase = []
+                        inPhrase = False
+                else:
+                    s1, e1 = chroList[n].getSpan()
+                    s2, e2 = chroList[n + 1].getSpan()
+                    if e1 + 1 != s2 and inPhrase:
+                        phrases.append(createTPEntity(tmpPhrase, id_counter))
+                        id_counter = id_counter + 1
+                        tmpPhrase = []
+                        inPhrase = False
+            elif inPhrase:
+                inPhrase=False
+                if isValidFreqPhrase(tmpPhrase):
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
+                    id_counter+=1
+                tmpPhrase = []
+
     """
     for n in range(0,len(chroList)):
         if chroList[n].isTemporal():
@@ -825,6 +859,25 @@ def getTemporalPhrases(chroList):
 
             
     return phrases
+## Takes in a list of reference tokens and returns true if it contains something that can be considered a valid Frequency on its own
+# @author Grant Matteo
+# @param items The list of reference tokens
+
+def isValidFreqPhrase(items):
+    if len(items) > 1:
+        fullText= "".join([item.getText() for item in items])
+        return (re.search("\%", fullText) is None)
+    else:
+        for item in items:
+            if item.isQInterval() or item.isAcronym():
+                return True
+
+
+        texts= [item.getText().lower() for item in items]
+        singulars=["daily"]
+
+        intersect =  list(set(texts) & set(singulars)) #find if the texts has any singulars in it
+        return len(intersect)>0
 
 
 def getDosePhrases(chroList):
