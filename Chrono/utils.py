@@ -75,32 +75,13 @@ def getWhitespaceTokens(file_path):
     tags = nltk.pos_tag(tokenized_text)
 
 
-
     #sent_tokenize_list = sent_tokenize(text)
     sent_boundaries = [0] * len(tokenized_text)
 
     ## figure out which tokens are at the end of a sentence
     tok_counter = 0
 
-    """
-    for s in range(0, len(sent_tokenize_list)):
-        sent = sent_tokenize_list[s]
 
-        if "\n" in sent:
-            sent_newline = sent.split("\n")
-            for sn in sent_newline:
-                sent_split = WhitespaceTokenizer().tokenize(sn)
-                nw_idx = len(sent_split) + tok_counter - 1
-                sent_boundaries[nw_idx] = 1
-                tok_counter = tok_counter + len(sent_split)
-
-
-        else:
-            sent_split = WhitespaceTokenizer().tokenize(sent)
-            nw_idx = len(sent_split) + tok_counter - 1
-            sent_boundaries[nw_idx] = 1
-            tok_counter = tok_counter + len(sent_split)
-    """
     return text, tokenized_text, spans, tags, sent_boundaries
 
 ## Reads in the dct file and converts it to a datetime object.
@@ -405,6 +386,7 @@ def markFrequency(refToks):
         ref.setAcronym(isAcronym(ref.getText()))
         ref.setQInterval(isQStatement(ref.getText()))
         ref.setFreqModifier(isFreqModifier(ref.getText()))
+        ref.setFreqTransition(isFreqTransition(ref.getText()))
     return refToks
 
 ## Marks reference tokens that are dose-related (i.e., dose, dose units, conjunctions)
@@ -460,9 +442,16 @@ def isAcronym(tok):
     acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w", "q", "asdir"];
     tok = re.sub('['+string.punctuation+']', '', tok).strip()
     tok=tok.lower();
+
     return tok in acronyms
 def isFreqModifier(tok):
-    modifiers=["if", "once", "twice", "times", "time", "per", "each", "every", "daily", "nightly", "at", "as", "ongoing", "every other day"]
+    modifiers=["once", "twice", "each", "every", "daily", "nightly", "at", "as", "ongoing", "every other day", "needed"]
+    tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
+    tok = tok.lower()
+    return tok in modifiers
+##These should only show up in the middle of a Frequency phrase, otherwise, something is wrong.
+def isFreqTransition(tok):
+    modifiers=["if", "times", "time", "per", "a"]
     tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
     tok = tok.lower()
     return tok in modifiers
@@ -571,10 +560,6 @@ def combdoseTest(tok):  # may have to fix later
 # @param tok The token string
 # @return Boolean true if numeric, false otherwise
 def numericTest(tok, pos):
-    notNumbers= ["zestril"]
-    # a bit of a bandaid solution to the problem of the POS tagger tagging non-numbers as numbers. Cannot possibly generalize to new datasets, but works for testing purposes.
-    if tok.lower() in notNumbers:
-        return False
 
     if "[" in tok.lower() and "]" in tok.lower():
         return False
@@ -832,39 +817,57 @@ def getDoseDurationPhrases(chroList):
 # @author Amy Olex
 # @param chroList The list of temporally marked reference tokens
 # @return A list of temporal phrases for parsing
-def getFrequencyPhrases(chroList):
+def getFrequencyPhrases(chroList, text):
     id_counter = 0
-    
+    text=re.sub("\r", "", text)
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inPhrase = False
 
 
     for n in range(0, len(chroList)):
-        if chroList[n].isFreqComp():
+        start, end = chroList[n].getSpan()
+        normalizedTxt=chroList[n].getText().lower().translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).strip()
+        if chroList[n].isFreqComp() or (chroList[n].isFreqTransition() and inPhrase):
             inPhrase=True
             tmpPhrase.append(chroList[n])
             if n == len(chroList) - 1:
-                if inPhrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inPhrase = False
-            else:
-                s1, e1 = chroList[n].getSpan()
-                s2, e2 = chroList[n + 1].getSpan()
-                if e1 + 1 != s2 and inPhrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inPhrase = False
-        elif inPhrase:
-            inPhrase=False
-            if isValidFreqPhrase(tmpPhrase):
-                phrases.append(createTPEntity(tmpPhrase, id_counter))
-                id_counter+=1
-            tmpPhrase = []
+                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
+                    tmpPhrase.pop() #removing trailing transitions
 
+                if isValidFreqPhrase(tmpPhrase):
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
+                    id_counter += 1
+
+
+                tmpPhrase = []
+                inPhrase = False
+            elif "\n" in text[start:end+1]:
+                inPhrase = False
+                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
+                    tmpPhrase.pop()  # removing trailing transitions
+                if isValidFreqPhrase(tmpPhrase):
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
+                    id_counter += 1
+                tmpPhrase = []
+        elif inPhrase:
+            if not (n<len(chroList)-1 and chroList[n-1].isNumeric() and chroList[n+1].isNumeric() and normalizedTxt=="to"): #check for ranges of numbers like "one to three"
+                print(chroList[n].getText(), chroList[n+1].getText())
+                inPhrase=False
+                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
+                    tmpPhrase.pop()  # removing trailing transitions
+                if isValidFreqPhrase(tmpPhrase):
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
+                    id_counter+=1
+                tmpPhrase = []
+            elif (n==len(chroList)-1):
+                inPhrase = False
+                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
+                    tmpPhrase.pop()  # removing trailing transitions
+                if isValidFreqPhrase(tmpPhrase):
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
+                    id_counter += 1
+                tmpPhrase = []
     return phrases
 ## Takes in a list of reference tokens and returns true if it contains something that can be considered a valid Frequency on its own
 # @author Grant Matteo
@@ -881,8 +884,7 @@ def isValidFreqPhrase(items):
 
 
         texts= [item.getText().lower() for item in items]
-        singulars=["daily"]
-
+        singulars=["daily", "nightly"]
         intersect =  list(set(texts) & set(singulars)) #find if the texts has any singulars in it
         return len(intersect)>0
 
@@ -945,7 +947,7 @@ def createTPEntity(items, counter):
     for i in items:
         text = text + ' ' + i.getText()
     
-    return tp.LabelPhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None)
+    return tp.LabelPhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None, tempvalue=None, items=items)
 
 
 

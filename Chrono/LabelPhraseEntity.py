@@ -50,13 +50,14 @@ from typing import List
 class LabelPhraseEntity:
 
     ## The constructor
-    def __init__(self, id, text, start_span, end_span, temptype, tempvalue) :
+    def __init__(self, id, text, start_span, end_span, temptype, tempvalue, items) :
         self.id = id
         self.text = text
         self.start_span = start_span
         self.end_span = end_span
         self.temptype = temptype
         self.tempvalue = tempvalue
+        self.items=items
 
 
     # String representation
@@ -117,7 +118,8 @@ class LabelPhraseEntity:
     ## Gets the entity's tempvalue
     def getValue(self) :
         return(self.tempvalue)
-    
+    def getItems(self):
+        return self.items
 
 
 ## Function to convert json output of TimePhrase to a list of TimePhraseEntities

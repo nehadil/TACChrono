@@ -52,8 +52,8 @@ import string
 # @param sent_boundary A boolean indicating if this token is at the end of a sentence or line
 class refToken:
     ## The constructor
-    def __init__(self, id, text, temporalType=-1, acronym=None, numericRange=None,start_span=None, end_span=None,
-                 pos=None, temporal=None, doseunit=None, t6list=None, numeric=None, combdose=None,
+    def __init__(self, id, text, temporalType=-1, acronym=None,start_span=None, end_span=None,
+                 pos=None, temporal=None , t6list=None, numeric=None,
                  conjunction=None, sent_boundary=None) :
         self.id = id
         self.frequencyTransition=False
@@ -61,15 +61,16 @@ class refToken:
         self.start_span = start_span
         self.end_span = end_span
         self.pos = pos
-        self.doseunit = doseunit
+        self.doseunit = None
         self.numeric = numeric
         self.t6list = t6list
-        self.combdose = combdose
+        self.combdose = None
         self.temporal = temporal
         self.qInterval= False
         self.conjunction = conjunction
         self.sent_boundary = sent_boundary
-        self.numericRange = numericRange
+        self.numericRange = False
+
         self.acronym= acronym
         self.freqModifier=False;
         self.temporalType=temporalType
@@ -90,7 +91,6 @@ class refToken:
     #  @param id The ID to set it to
     def setID(self, id) :
         self.id = id
-
     ## Sets whether the entity is a qInterval
     #  @param boole the boolean value (true if it is, false if it isn't)
     def setQInterval(self, boole):
@@ -116,7 +116,7 @@ class refToken:
 
     ## Sets whether this phrase is a Frequency Transition (to, each, every, etc)
     #  @param boole boolean for whether it is (true) or isnt (false)
-    def setIsFrequencyTransition(self, boole):
+    def setFreqTransition(self, boole):
         self.frequencyTransition=boole
     ## Sets the entity's text
     #  @param text The text to set it to
@@ -171,15 +171,16 @@ class refToken:
     def isFreqComp(self):
         if self.doseunit or self.combdose: #don't want to capture doseunits which may precede frequencies
             return False
-        return self.frequencyTransition or self.temporal or\
+        return self.temporal or\
                self.acronym or self.numericRange or self.numeric or self.freqModifier or self.qInterval
     ## Returns a string for Frequency debugging
     def getFreqDebug(self):
         return self.text + " " + str(self.frequencyTransition) + " " + str(self.temporal) + " "+str(self.acronym) + " " +\
                str(self.numericRange) + " " + str(self.numeric) + " " + str(self.freqModifier) + " " + str(self.qInterval)+ " "+ self.pos
-
     def isFreqModifier(self):
         return self.freqModifier
+    def isFreqTransition(self):
+        return self.frequencyTransition
     def isQInterval(self):
         return self.qInterval
     def isAcronym(self):
