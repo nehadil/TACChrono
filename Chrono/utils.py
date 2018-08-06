@@ -574,7 +574,8 @@ def numericTest(tok, pos):
     # a bit of a bandaid solution to the problem of the POS tagger tagging non-numbers as numbers. Cannot possibly generalize to new datasets, but works for testing purposes.
     if tok.lower() in notNumbers:
         return False
-
+    if "[" in tok.lower() and "]" in tok.lower():
+        return False
     if pos == "CD":
         return True
     else:
@@ -753,33 +754,32 @@ def getTemporalPhrases(chroList):
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inPhrase = False
-    with open("/home/garnt/Documents/ChroDeb2.out", "w") as debOut:
 
-        for n in range(0, len(chroList)):
-            debOut.write(chroList[n].getText()+"\t||\t"+ chroList[n].getFreqDebug()+"\n")
-            if chroList[n].isFreqComp():
-                inPhrase=True
-                tmpPhrase.append(chroList[n])
-                if n == len(chroList) - 1:
-                    if inPhrase:
-                        phrases.append(createTPEntity(tmpPhrase, id_counter))
-                        id_counter = id_counter + 1
-                        tmpPhrase = []
-                        inPhrase = False
-                else:
-                    s1, e1 = chroList[n].getSpan()
-                    s2, e2 = chroList[n + 1].getSpan()
-                    if e1 + 1 != s2 and inPhrase:
-                        phrases.append(createTPEntity(tmpPhrase, id_counter))
-                        id_counter = id_counter + 1
-                        tmpPhrase = []
-                        inPhrase = False
-            elif inPhrase:
-                inPhrase=False
-                if isValidFreqPhrase(tmpPhrase):
+
+    for n in range(0, len(chroList)):
+        if chroList[n].isFreqComp():
+            inPhrase=True
+            tmpPhrase.append(chroList[n])
+            if n == len(chroList) - 1:
+                if inPhrase:
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter+=1
-                tmpPhrase = []
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inPhrase = False
+            else:
+                s1, e1 = chroList[n].getSpan()
+                s2, e2 = chroList[n + 1].getSpan()
+                if e1 + 1 != s2 and inPhrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inPhrase = False
+        elif inPhrase:
+            inPhrase=False
+            if isValidFreqPhrase(tmpPhrase):
+                phrases.append(createTPEntity(tmpPhrase, id_counter))
+                id_counter+=1
+            tmpPhrase = []
 
 
     for n in range(0,len(chroList)):
