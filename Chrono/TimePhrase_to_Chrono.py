@@ -76,60 +76,10 @@ def buildChronoList(TimePhraseList, chrono_id, ref_list, PIclassifier, PIfeature
 
         # this is the new chrono time flags so we don't duplicate effort.  Will ned to eventually re-write this flow.
         # The flags are in the order: [loneDigitYear, month, day, hour, minute, second]
-        chrono_time_flags = {"loneDigitYear": False, "month": False, "day": False, "hour": False, "minute": False,
-                             "second": False, "fourdigityear": False}
+        chrono_time_flags = {"Frequency"}
 
         # Parse out Year function
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildChronoYear(s, chrono_id, chrono_tmp_list,
-                                                                        chrono_time_flags)
-        # Parse out Two-Digit Year
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildChrono2DigitYear(s, chrono_id, chrono_tmp_list,
-                                                                              chrono_time_flags)
-        # Parse out Month-of-Year
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildChronoMonthOfYear(s, chrono_id, chrono_tmp_list,
-                                                                               chrono_time_flags)
-        # Parse out Day-of-Month
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildChronoDayOfMonth(s, chrono_id, chrono_tmp_list,
-                                                                              chrono_time_flags)
-        # Parse out HourOfDay
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildChronoHourOfDay(s, chrono_id, chrono_tmp_list,
-                                                                             chrono_time_flags)
-        # Parse out MinuteOfHour
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildChronoMinuteOfHour(s, chrono_id, chrono_tmp_list,
-                                                                                chrono_time_flags)
-        # Parse out SecondOfMinute
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildChronoSecondOfMinute(s, chrono_id, chrono_tmp_list,
-                                                                                  chrono_time_flags)
-
-        # Parse modifier text
-        chrono_tmp_list, chrono_id = buildModifierText(s, chrono_id, chrono_tmp_list)
-
-        # call non-standard formatting temporal phrases
-        chrono_tmp_list, chrono_id, chrono_time_flags = buildNumericDate(s, chrono_id, chrono_tmp_list,
-                                                                         chrono_time_flags)
-        chrono_tmp_list, chrono_id, chrono_time_flags = build24HourTime(s, chrono_id, chrono_tmp_list,
-                                                                        chrono_time_flags)
-
-        chrono_tmp_list, chrono_id = buildDayOfWeek(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = buildTextMonthAndDay(s, chrono_id, chrono_tmp_list, dct, ref_list)
-        chrono_tmp_list, chrono_id = buildAMPM(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = buildPartOfDay(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = buildPartOfWeek(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = buildSeasonOfYear(s, chrono_id, chrono_tmp_list, ref_list)
-        chrono_tmp_list, chrono_id = buildPeriodInterval(s, chrono_id, chrono_tmp_list, ref_list, PIclassifier,
-                                                         PIfeatures)
-        chrono_tmp_list, chrono_id = buildTextYear(s, chrono_id, chrono_tmp_list)
-
-        chrono_tmp_list, chrono_id = buildThis(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = buildBeforeAfter(s, chrono_id, chrono_tmp_list)
-        chrono_tmp_list, chrono_id = buildNthFromStart(s, chrono_id, chrono_tmp_list, ref_list)
-        chrono_tmp_list, chrono_id = buildTimeZone(s, chrono_id, chrono_tmp_list)
-
-        #    print("XXXXXXXXX")
-        #    print(s)
-        #    for e in chrono_tmp_list:
-        #        print(e)
-        tmplist, chrono_id = buildChronoSubIntervals(chrono_tmp_list, chrono_id, dct, ref_list)
+        chrono_tmp_list, chrono_id, chrono_time_flags = buildFrequency()
         chrono_list = chrono_list + tmplist
         # Going to incorporate in future builds
         # chrono_list, chrono_id = buildDuration(s, chrono_id, chrono_list)

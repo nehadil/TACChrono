@@ -680,38 +680,38 @@ def unitTest(tok):
 # @author Amy Olex
 # @param chroList The list of temporally marked reference tokens
 # @return A list of temporal phrases for parsing
-def getTemporalPhrases(chroList, doctime):
-    # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
+def getTemporalPhrases(chroList):
+    # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value']=doctime)
     id_counter = 0
 
     phrases = []  # the empty phrases list of TimePhrase entities
     tmpPhrase = []  # the temporary phrases list.
-    inphrase = False
+    inPhrase = False
     for n in range(0, len(chroList)):
         # if temporal start building a list
         # print("Filter Start Phrase: " + str(chroList[n]))
         if chroList[n].isTemporal():
             # print("Is Temporal: " + str(chroList[n]))
-            if not inphrase:
-                inphrase = True
+            if not inPhrase:
+                inPhrase = True
             # in phrase, so add new element
             tmpPhrase.append(copy.copy(chroList[n]))
             # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
             # if this is the last token of the file, end the phrase.
             if n == len(chroList) - 1:
-                if inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                if inPhrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
-                    inphrase = False
+                    inPhrase = False
             else:
                 s1, e1 = chroList[n].getSpan()
                 s2, e2 = chroList[n + 1].getSpan()
-                if e1 + 1 != s2 and inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                if e1 + 1 != s2 and inPhrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
-                    inphrase = False
+                    inPhrase = False
 
 
         elif chroList[n].isNumeric():
@@ -725,47 +725,47 @@ def getTemporalPhrases(chroList, doctime):
                               None)
                 if answer is None:
                     # print("No million/billion/trillion: " + str(chroList[n]))
-                    if not inphrase:
-                        inphrase = True
+                    if not inPhrase:
+                        inPhrase = True
                     # in phrase, so add new element
                     tmpPhrase.append(copy.copy(chroList[n]))
             # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
             # if this is the last token of the file, end the phrase.
             if n == len(chroList) - 1:
-                if inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                if inPhrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
-                    inphrase = False
+                    inPhrase = False
             else:
                 s1, e1 = chroList[n].getSpan()
                 s2, e2 = chroList[n + 1].getSpan()
-                if e1 + 1 != s2 and inphrase:
+                if e1 + 1 != s2 and inPhrase:
                     # print("has new line: " + str(chroList[n]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
-                    inphrase = False
+                    inPhrase = False
         else:
-            # current element is not temporal, check to see if inphrase
+            # current element is not temporal, check to see if inPhrase
             # print("Not Temporal, or numeric " + str(chroList[n]))
-            if inphrase:
+            if inPhrase:
                 # set to False, add tmpPhrase as TimePhrase entitiy to phrases, then reset tmpPhrase
-                inphrase = False
+                inPhrase = False
                 # check to see if only a single element and element is numeric, then do not add.
                 if len(tmpPhrase) != 1:
                     # print("multi element phrase ")
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 elif not tmpPhrase[0].isNumeric():
                     # print("not numeric: " + str(chroList[n-1]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 elif tmpPhrase[0].isNumeric() and tmpPhrase[0].isTemporal():
                     # print("temporal and numeric: " + str(chroList[n-1]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                 else:
@@ -775,8 +775,8 @@ def getTemporalPhrases(chroList, doctime):
     return phrases
 
 
-def getDosePhrases(chroList, doctime):
-    # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value'], doctime=doctime)
+def getDosePhrases(chroList):
+    # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value']=doctime)
 
     phrases = []  # the empty phrases list of TimePhrase entities
     dosePhrase = []  # the temporary phrases list.
@@ -784,13 +784,13 @@ def getDosePhrases(chroList, doctime):
     for n in range(0, len(chroList)):
         if (chroList[n].isCombdose()):
             if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
-                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                phrases.append(createDPEntity(dosePhrase, counter))
                 counter = counter + 1
                 dosePhrase = []
             dosePhrase.append(copy.copy(chroList[n]))
         elif (chroList[n].isNumeric()):
             if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
-                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                phrases.append(createDPEntity(dosePhrase, counter))
                 counter = counter + 1
                 dosePhrase = []
 
@@ -800,17 +800,17 @@ def getDosePhrases(chroList, doctime):
                 dosePhrase.append(copy.copy(chroList[n]))
         elif (chroList[n].isConjunction() and len(dosePhrase)>0):
             if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
-                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                phrases.append(createDPEntity(dosePhrase, counter))
                 counter = counter + 1
             dosePhrase.append(copy.copy(chroList[n]))
         else:
             if (len(dosePhrase) >= 1 and (dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose())):
-                phrases.append(createDPEntity(dosePhrase, counter, doctime))
+                phrases.append(createDPEntity(dosePhrase, counter))
                 counter = counter + 1
             dosePhrase = []
     if (len(dosePhrase) >= 1):
         if dosePhrase[len(dosePhrase) - 1].isDoseunit() or dosePhrase[len(dosePhrase) - 1].isCombdose():
-            phrases.append(createDPEntity(dosePhrase, counter, doctime))
+            phrases.append(createDPEntity(dosePhrase, counter))
 
     return phrases
 
@@ -826,7 +826,7 @@ def getDosePhrases(chroList, doctime):
 # @param counter The ID this TimePhrase entity should have
 # @param doctime The document time.
 # @return A single TimePhrase entity with the text span and string concatenated.
-def createTPEntity(items, counter, doctime):
+def createTPEntity(items, counter):
     start_span, tmp = items[0].getSpan()
     tmp, end_span = items[len(items) - 1].getSpan()
     text = ""
@@ -834,7 +834,7 @@ def createTPEntity(items, counter, doctime):
         text = text + ' ' + i.getText()
 
     return tp.LabelPhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None,
-                               tempvalue=None, doctime=doctime)
+                               tempvalue=None)
 
 
 
@@ -844,7 +844,7 @@ def createTPEntity(items, counter, doctime):
 
 
 
-def createDPEntity(items, counter, doctime):
+def createDPEntity(items, counter):
     start_span, tmp = items[0].getSpan()
     tmp, end_span = items[len(items) - 1].getSpan()
     allspans = []
@@ -856,7 +856,7 @@ def createDPEntity(items, counter, doctime):
         text += i.getText()
 
     return dp.DosePhraseEntity(id=counter, text=text.strip(), start_span=start_span, end_span=end_span, temptype=None,
-                               tempvalue=None, doctime=doctime, allspans=allspans)
+                               tempvalue=None, allspans=allspans)
 
 
 ####

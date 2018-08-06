@@ -138,9 +138,7 @@ if __name__ == "__main__":
         my_chrono_ID_counter = 1
         
         ## parse out the doctime
-        doctime = utils.getDocTime(infiles[f] + ".dct")
-        if(debug) : print(doctime)
-    
+
         ## parse out reference tokens
         text, tokens, spans, tags = utils.gettext, tokens, spans, tags = utils.getWhitespaceTokens(infiles[f]+args.x)
         nlp = spacy.load('en_core_web_sm')
@@ -160,7 +158,7 @@ if __name__ == "__main__":
         chroList = utils.markTemporal(my_refToks)
 
         chroList = utils.markDose(my_refToks)
-        dosePhrases = utils.getDosePhrases(chroList, doctime)
+        dosePhrases = utils.getDosePhrases(chroList)
         for dose in dosePhrases:
             for chunk in chunks:
                 if dose.getText() in chunk and ("bw" in chunk.lower() or "b.w" in chunk.lower() or "body" in chunk.lower()):
@@ -173,7 +171,7 @@ if __name__ == "__main__":
                         dose.setText(dose.getText()+rest)
                         dose.setSpan(dose.getSpan()[0], len(dose.getText()))
                         break
-        tempPhrases = utils.getTemporalPhrases(chroList, doctime)
+        tempPhrases = utils.getTemporalPhrases(chroList)
 
 
 

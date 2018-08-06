@@ -85,13 +85,14 @@ if __name__ == "__main__":
     outdirs = []
     for root, dirs, files in os.walk(args.i, topdown = True):
        for name in dirs:
-          print(os.path.join(root,name))
-          indirs.append(os.path.join(root, name))
-          infiles.append(os.path.join(root,name,name))
-          outfiles.append(os.path.join(args.o,name,name))
-          outdirs.append(os.path.join(args.o,name))
-          if not os.path.exists(os.path.join(args.o,name)):
-              os.makedirs(os.path.join(args.o,name))
+           print (root)
+           print(name)
+           indirs.append(os.path.join(root, name))
+           infiles.append(os.path.join(root,name,name))
+           outfiles.append(os.path.join(args.o,name,name))
+           outdirs.append(os.path.join(args.o,name))
+           if not os.path.exists(os.path.join(args.o,name)):
+               os.makedirs(os.path.join(args.o,name))
     
     ## Get training data for ML methods by importing pre-made boolean matrix
     ## Train ML methods on training data
@@ -163,7 +164,11 @@ if __name__ == "__main__":
     
         chroList = utils.markNotable(my_refToks)
         tempPhrases = utils.getTemporalPhrases(chroList)
-        dosePhrases = utils.getDosePhrases()
+        #dosePhrases = utils.getDosePhrases()
+        with open("/home/garnt/Documents/Chrodeb.out", "w") as debOut:
+            debOut.write("Phrases: "+str(len(tempPhrases))+"\n")
+            for phrase in tempPhrases:
+                debOut.write(phrase.getText()+"\n")
 
         chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
                                                                                  my_chrono_ID_counter, chroList,
@@ -171,5 +176,3 @@ if __name__ == "__main__":
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
-    
-    
