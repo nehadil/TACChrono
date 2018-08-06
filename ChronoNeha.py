@@ -171,7 +171,7 @@ if __name__ == "__main__":
                         dose.setText(dose.getText()+rest)
                         dose.setSpan(dose.getSpan()[0], len(dose.getText()))
                         break
-        tempPhrases = utils.getTemporalPhrases(chroList)
+        tempPhrases = utils.getFrequencyPhrases(chroList)
 
 
 
