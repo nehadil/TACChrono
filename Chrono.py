@@ -148,8 +148,7 @@ if __name__ == "__main__":
         print("Parsing "+ infiles[f] +" ...")
         ## Init the ChronoEntity list
         my_chronoentities = []
-        my_chrono_ID_counter = 1
-
+        chrono_ID_counter=1
 
 
         text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f] + args.x)
@@ -161,13 +160,16 @@ if __name__ == "__main__":
 
     
         chroList = utils.markNotable(my_refToks)
-        tempPhrases = utils.getTemporalPhrases(chroList)
+        freqPhrases = utils.getFrequencyPhrases(chroList)
         #dosePhrases = utils.getDosePhrases()
+        doseDurationPhrases=utils.getDoseDurationPhrases(chroList)
 
-
-        chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
-                                                                                 my_chrono_ID_counter, chroList,
+        chrono_master_list, my_freq_ID_counter = BuildEntities.buildChronoList(freqPhrases,
+                                                                                 chrono_ID_counter, chroList,
                                                                                  (classifier, args.m), feats)
+        chrono_master_list.append((BuildEntities.buildChronoList(doseDurationPhrases,
+                                                                             chrono_ID_counter, chroList,
+                                                                             (classifier, args.m), feats))[0])
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
