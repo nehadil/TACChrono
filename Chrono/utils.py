@@ -744,7 +744,7 @@ def getTemporalPhrases(chroList):
     inphrase = False
 
 
-    """
+
     for n in range(0,len(chroList)):
         if chroList[n].isTemporal():
             #print("Is Temporal: " + str(chroList[n]))
@@ -756,7 +756,7 @@ def getTemporalPhrases(chroList):
             # if this is the last token of the file, end the phrase.
             if n == len(chroList)-1:
                 if inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                     inphrase = False
@@ -764,7 +764,7 @@ def getTemporalPhrases(chroList):
                 s1, e1 = chroList[n].getSpan()
                 s2, e2 = chroList[n + 1].getSpan()
                 if e1 + 1 != s2 and inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                     inphrase = False
@@ -786,7 +786,7 @@ def getTemporalPhrases(chroList):
             # if this is the last token of the file, end the phrase.
             if n == len(chroList)-1:
                 if inphrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                     inphrase = False
@@ -795,7 +795,7 @@ def getTemporalPhrases(chroList):
                 s2, e2 = chroList[n + 1].getSpan()
                 if e1 + 1 != s2 and inphrase:
                     # print("has new line: " + str(chroList[n]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter, doctime))
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
                     inphrase = False
@@ -818,7 +818,7 @@ def getTemporalPhrases(chroList):
                 else:
                     tmpPhrase = []
 
-    """
+
 
             
     return phrases
