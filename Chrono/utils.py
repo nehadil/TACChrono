@@ -51,6 +51,7 @@ import re
 import csv
 from collections import OrderedDict
 import numpy as np
+import spacy
 #from word2number import w2n
 from Chrono import w2ny as w2n
 import string
@@ -72,8 +73,14 @@ def getWhitespaceTokens(file_path):
     spans = [span for span in span_generator]
     tokenized_text = WhitespaceTokenizer().tokenize(text)
     tags = nltk.pos_tag(tokenized_text)
+    nlp = spacy.load('en_core_web_sm')
 
+    doc=nlp(text)
 
+    with open("/home/garnt/Documents/tags.out", "w") as tagout:
+        for tag, tag2 in zip(tags, doc):
+            tagout.write(str(tag)+" " +str(tag2.tag_)+" "+str(tag2.text)+"\n")
+    exit(0)
     #sent_tokenize_list = sent_tokenize(text)
     sent_boundaries = [0] * len(tokenized_text)
 
@@ -574,7 +581,6 @@ def numericTest(tok, pos):
     # a bit of a bandaid solution to the problem of the POS tagger tagging non-numbers as numbers. Cannot possibly generalize to new datasets, but works for testing purposes.
     if tok.lower() in notNumbers:
         return False
-
     if pos == "CD":
         return True
     else:

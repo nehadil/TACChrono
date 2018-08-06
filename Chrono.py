@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
 
 
-        text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f] + args.x)
+        text, tokens, spans, tags, sents, spacyPOS = utils.getWhitespaceTokens(infiles[f] + args.x)
 
 
 
