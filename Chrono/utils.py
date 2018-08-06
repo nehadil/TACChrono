@@ -574,8 +574,6 @@ def numericTest(tok, pos):
     # a bit of a bandaid solution to the problem of the POS tagger tagging non-numbers as numbers. Cannot possibly generalize to new datasets, but works for testing purposes.
     if tok.lower() in notNumbers:
         return False
-    if "[" in tok.lower() and "]" in tok.lower():
-        return False
     if pos == "CD":
         return True
     else:
@@ -865,6 +863,8 @@ def getTemporalPhrases(chroList):
 
             
     return phrases
+
+
 ## Takes in a list of reference tokens and returns true if it contains something that can be considered a valid Frequency on its own
 # @author Grant Matteo
 # @param items The list of reference tokens
