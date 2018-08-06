@@ -85,8 +85,6 @@ if __name__ == "__main__":
     outdirs = []
     for root, dirs, files in os.walk(args.i, topdown = True):
        for name in dirs:
-           print (root)
-           print(name)
            indirs.append(os.path.join(root, name))
            infiles.append(os.path.join(root,name,name))
            outfiles.append(os.path.join(args.o,name,name))
@@ -154,7 +152,7 @@ if __name__ == "__main__":
 
 
 
-        text, tokens, spans, tags, sents, spacyPOS = utils.getWhitespaceTokens(infiles[f] + args.x)
+        text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f] + args.x)
 
 
 
@@ -165,10 +163,7 @@ if __name__ == "__main__":
         chroList = utils.markNotable(my_refToks)
         tempPhrases = utils.getTemporalPhrases(chroList)
         #dosePhrases = utils.getDosePhrases()
-        with open("/home/garnt/Documents/Chrodeb.out", "w") as debOut:
-            debOut.write("Phrases: "+str(len(tempPhrases))+"\n")
-            for phrase in tempPhrases:
-                debOut.write(phrase.getText()+"\n")
+
 
         chrono_master_list, my_chrono_ID_counter = BuildEntities.buildChronoList(tempPhrases,
                                                                                  my_chrono_ID_counter, chroList,

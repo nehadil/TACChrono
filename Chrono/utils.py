@@ -73,14 +73,9 @@ def getWhitespaceTokens(file_path):
     spans = [span for span in span_generator]
     tokenized_text = WhitespaceTokenizer().tokenize(text)
     tags = nltk.pos_tag(tokenized_text)
-    nlp = spacy.load('en_core_web_sm')
 
-    doc=nlp(text)
 
-    with open("/home/garnt/Documents/tags.out", "w") as tagout:
-        for tag, tag2 in zip(tags, doc):
-            tagout.write(str(tag)+" " +str(tag2.tag_)+" "+str(tag2.text)+"\n")
-    exit(0)
+
     #sent_tokenize_list = sent_tokenize(text)
     sent_boundaries = [0] * len(tokenized_text)
 
@@ -424,8 +419,7 @@ def markDose(refToks):
     flag = False # indicates whether this word should counted as a dose unit regardless of its test results
 
     while i < len(refToks):
-        if "diss" in refToks[i].getText() or "suspend" in refToks[i].getText() or "containing" in refToks[
-            i].getText():  # don't include solvents or solutes
+        if "diss" in refToks[i].getText() or "suspend" in refToks[i].getText() or "containing" in refToks[i].getText():  # don't include solvents or solutes
             opt1 = re.compile(r'\.$')
             while (i < len(refToks) and "isomer" not in refToks[i].getText() and opt1.match(
                     refToks[i].getText()) != None):
@@ -580,6 +574,9 @@ def numericTest(tok, pos):
     notNumbers= ["zestril"]
     # a bit of a bandaid solution to the problem of the POS tagger tagging non-numbers as numbers. Cannot possibly generalize to new datasets, but works for testing purposes.
     if tok.lower() in notNumbers:
+        return False
+
+    if "[" in tok.lower() and "]" in tok.lower():
         return False
     if pos == "CD":
         return True
@@ -759,35 +756,34 @@ def getTemporalPhrases(chroList):
     phrases = [] #the empty phrases list of TimePhrase entities
     tmpPhrase = [] #the temporary phrases list.
     inPhrase = False
-    with open("/home/garnt/Documents/ChroDeb2.out", "w") as debOut:
 
-        for n in range(0, len(chroList)):
-            debOut.write(chroList[n].getText()+"\t||\t"+ chroList[n].getFreqDebug()+"\n")
-            if chroList[n].isFreqComp():
-                inPhrase=True
-                tmpPhrase.append(chroList[n])
-                if n == len(chroList) - 1:
-                    if inPhrase:
-                        phrases.append(createTPEntity(tmpPhrase, id_counter))
-                        id_counter = id_counter + 1
-                        tmpPhrase = []
-                        inPhrase = False
-                else:
-                    s1, e1 = chroList[n].getSpan()
-                    s2, e2 = chroList[n + 1].getSpan()
-                    if e1 + 1 != s2 and inPhrase:
-                        phrases.append(createTPEntity(tmpPhrase, id_counter))
-                        id_counter = id_counter + 1
-                        tmpPhrase = []
-                        inPhrase = False
-            elif inPhrase:
-                inPhrase=False
-                if isValidFreqPhrase(tmpPhrase):
+
+    for n in range(0, len(chroList)):
+        if chroList[n].isFreqComp():
+            inPhrase=True
+            tmpPhrase.append(chroList[n])
+            if n == len(chroList) - 1:
+                if inPhrase:
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter+=1
-                tmpPhrase = []
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inPhrase = False
+            else:
+                s1, e1 = chroList[n].getSpan()
+                s2, e2 = chroList[n + 1].getSpan()
+                if e1 + 1 != s2 and inPhrase:
+                    phrases.append(createTPEntity(tmpPhrase, id_counter))
+                    id_counter = id_counter + 1
+                    tmpPhrase = []
+                    inPhrase = False
+        elif inPhrase:
+            inPhrase=False
+            if isValidFreqPhrase(tmpPhrase):
+                phrases.append(createTPEntity(tmpPhrase, id_counter))
+                id_counter+=1
+            tmpPhrase = []
 
-    """
+
     for n in range(0,len(chroList)):
         if chroList[n].isTemporal():
             #print("Is Temporal: " + str(chroList[n]))
@@ -798,7 +794,9 @@ def getTemporalPhrases(chroList):
             # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
             # if this is the last token of the file, end the phrase.
             if n == len(chroList)-1:
+
                 if inPhrase:
+
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
@@ -806,7 +804,10 @@ def getTemporalPhrases(chroList):
             else:
                 s1, e1 = chroList[n].getSpan()
                 s2, e2 = chroList[n + 1].getSpan()
+
+
                 if e1 + 1 != s2 and inPhrase:
+
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
                     tmpPhrase = []
@@ -828,6 +829,7 @@ def getTemporalPhrases(chroList):
             # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
             # if this is the last token of the file, end the phrase.
             if n == len(chroList)-1:
+
                 if inPhrase:
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter = id_counter + 1
@@ -861,7 +863,7 @@ def getTemporalPhrases(chroList):
                 else:
                     tmpPhrase = []
 
-    """
+
 
             
     return phrases
