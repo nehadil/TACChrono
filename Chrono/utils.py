@@ -561,6 +561,7 @@ def combdoseTest(tok):  # may have to fix later
 # @return Boolean true if numeric, false otherwise
 def numericTest(tok, pos):
 
+
     if "[" in tok.lower() and "]" in tok.lower():
         return False
     if pos == "CD":
@@ -869,6 +870,8 @@ def getFrequencyPhrases(chroList, text):
                     id_counter += 1
                 tmpPhrase = []
     return phrases
+
+
 ## Takes in a list of reference tokens and returns true if it contains something that can be considered a valid Frequency on its own
 # @author Grant Matteo
 # @param items The list of reference tokens

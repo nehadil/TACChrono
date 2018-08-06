@@ -19,6 +19,15 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     features = feats.copy()
     ref_Sspan, ref_Espan = s.getSpan()
     #print("In buildPeriodInterval(), TimePhrase Text: " + s.getText())
+    bad = re.compile(r"^q\d|^q\d")
+    parts = s.getText().split()
+    if isDoseDuration(parts[0]):
+        return chrono_list, chrono_id
+    if "every" in s.getText().lower() or "time" in s.getText().lower() or "per" in s.getText().lower() or "/" in s.getText().lower():
+        return chrono_list, chrono_id
+    if bad.match(s.getText()):
+        return chrono_list, chrono_id
+
     boo, val, idxstart, idxend, plural = hasDoseDuration(s)
     if boo:
         abs_Sspan = ref_Sspan + idxstart
@@ -51,7 +60,7 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
         if my_class == 1:
             my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
                                                         end_span=abs_Espan, dose_type=getDoseDurationValue(val),
-                                                        number=None)
+                                                        number=None, text=s.getText())
             chrono_id = chrono_id + 1
             ### Check to see if this calendar interval has a "this" in front of it
             prior_tok = ref_list[ref_idx - 1].getText().lower()
@@ -91,7 +100,7 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
 
         else:
             my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
-                                                        end_span=abs_Espan, dose_type=val, number=None)
+                                                        end_span=abs_Espan, dose_type=val, number=None, text=s.getText())
             chrono_id = chrono_id + 1
             ### Check to see if this calendar interval has a "this" in front of it
             prior_tok = ref_list[ref_idx - 1].getText().lower()
@@ -181,10 +190,10 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
 
              # if 1 then it is a period, if 0 then it is an interval
             if(my_class == 1):
-                my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=getDoseDurationValue(val), number=None)
+                my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=getDoseDurationValue(val), number=None, text=s.getText())
                 chrono_id = chrono_id + 1
             else:
-                my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=val, number=None)
+                my_entity = chrono.ChronoDoseDurationEntity(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, dose_type=val, number=None, text=s.getText())
                 chrono_id = chrono_id + 1
 
             #Extract the number and identify the span of numstr
@@ -362,6 +371,19 @@ def hasEmbeddedPeriodInterval(tpentity):
                 else:
                     return False, None, None, None, None
     return False, None, None, None, None
+
+def isDoseDuration(text):
+    text = text.lower()
+    text_norm = text.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).strip()
+    terms = ["day", "week",
+             "month", "minute", "second", "hour",
+             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins"]
+    if text_norm in terms:
+        return True
+    else:
+        return False
+    # convert to list
+
 
 ## Takes in a string that is a Calendar-Interval value and returns the associated Period value
 # @author Amy Olex
