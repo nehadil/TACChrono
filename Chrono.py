@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
     
         chroList = utils.markNotable(my_refToks)
-        freqPhrases = utils.getFrequencyPhrases(chroList)
+        freqPhrases = utils.getFrequencyPhrases(chroList, text)
         #dosePhrases = utils.getDosePhrases()
         doseDurationPhrases=utils.getDoseDurationPhrases(chroList)
 
