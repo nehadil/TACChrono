@@ -19,13 +19,21 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     features = feats.copy()
     ref_Sspan, ref_Espan = s.getSpan()
     #print("In buildPeriodInterval(), TimePhrase Text: " + s.getText())
-    bad = re.compile(r"^q\d|^q\d")
+    bad = re.compile(r"^q\d|^Q\d")
     parts = s.getText().split()
     if isDoseDuration(parts[0]):
         return chrono_list, chrono_id
-    if "every" in s.getText().lower() or "time" in s.getText().lower() or "per" in s.getText().lower() or "/" in s.getText().lower():
+    if "every" in s.getText().lower() or "time" in s.getText().lower() or "per" in s.getText().lower():
         return chrono_list, chrono_id
     if bad.match(s.getText()):
+        return chrono_list, chrono_id
+    if "/" in s.getText():
+        return chrono_list, chrono_id
+    if "[**" in s.getText() or "**]" in s.getText():
+        return chrono_list, chrono_id
+    if "ly" in s.getText():
+        return chrono_list, chrono_id
+    if "(" in s.getText() or ")" in s.getText():
         return chrono_list, chrono_id
 
     boo, val, idxstart, idxend, plural = hasDoseDuration(s)
@@ -247,7 +255,7 @@ def hasDoseDuration(tpentity):
     #print("In hasPeriodInterval text: ", text)
 
     reg = re.search("after$", text)  ##we don't want to annotate these specific types of mentions
-    if text != "prn" and (reg ):
+    if reg:
         #print("Found date/time, returning FALSE")
         return False, None, None, None, None
     # remove all punctuation
@@ -258,7 +266,7 @@ def hasDoseDuration(tpentity):
 
     # define my period lists
     terms = ["day", "week","minute", "second", "hour",
-             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins","prn"]  #, "date"]
+             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins"]  #, "date"]
 
     # figure out if any of the tokens in the text_list are also in the interval list
     intersect = list(set(text_list) & set(terms))
@@ -284,8 +292,6 @@ def hasDoseDuration(tpentity):
             return True, "Second", start_idx, end_idx, False
         elif this_term in ["hour", "hourly", "hours", "hr", "hrs"]:
             return True, "Hour", start_idx, end_idx, False
-        elif this_term in ["prn"]:
-            return True, "PRN", start_idx, end_idx, False
         else:
             return False, None, None, None, None
 
@@ -335,7 +341,7 @@ def hasEmbeddedPeriodInterval(tpentity):
     # define my period/interval term lists
     terms = ["day", "week",
              "month", "minute", "second", "hour",
-             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins", "prn"] #, "date"]
+             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins"] #, "date"]
 
     ## if the term does not exist by itself it may be a substring. Go through each word in the TimePhrase string and see if a substring matches.
     for t in text_list:
@@ -365,8 +371,6 @@ def hasEmbeddedPeriodInterval(tpentity):
                         return True, "Second", start_idx, end_idx, sub1
                     elif this_term in ["hour", "hourly", "hours"]:
                         return True, "Hour", start_idx, end_idx, sub1
-                    elif this_term in ["prn"]:
-                        return True, "PRN", start_idx, end_idx, sub1
 
                 else:
                     return False, None, None, None, None

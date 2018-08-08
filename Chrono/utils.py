@@ -119,6 +119,7 @@ def write_xml(chrono_list, outfile):
             fout.write(str(c.print_xml()) + "\n")
         except:
             try:
+                #print(c)
                 fout.write(str(c[0].print_xml()+"\n"))
             except:
                 print("MISSION FAILED")
@@ -752,81 +753,24 @@ def getDoseDurationPhrases(chroList):
     tmpPhrase = []  # the temporary phrases list.
     inPhrase = False
     for n in range(0, len(chroList)):
-        if chroList[n].isTemporal():
-            # print("Is Temporal: " + str(chroList[n]))
-            if not inPhrase:
-                inPhrase = True
-            # in phrase, so add new element
-            tmpPhrase.append(copy.copy(chroList[n]))
-            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
-            # if this is the last token of the file, end the phrase.
-            if n == len(chroList) - 1:
-
-                if inPhrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inPhrase = False
-            else:
-                s1, e1 = chroList[n].getSpan()
-                s2, e2 = chroList[n + 1].getSpan()
-
-                if e1 + 1 != s2 and inPhrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inPhrase = False
-
-
-        elif chroList[n].isNumeric():
-            # if the token has a dollar sign or percent sign do not count it as temporal
-            m = re.search('[#$%]', chroList[n].getText())
-            if m is None:
-                # check for the "million" text phrase
-                answer = next((m for m in ["million", "billion", "trillion"] if m in chroList[n].getText().lower()),
-                              None)
-                if answer is None:
-                    # print("No million/billion/trillion: " + str(chroList[n]))
-                    if not inPhrase:
-                        inPhrase = True
-                    # in phrase, so add new element
-                    tmpPhrase.append(copy.copy(chroList[n]))
-            # test to see if a new line is present.  If it is AND we are in a temporal phrase, end the phrase and start a new one.
-            # if this is the last token of the file, end the phrase.
-            if n == len(chroList) - 1:
-
-                if inPhrase:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inPhrase = False
-            else:
-                s1, e1 = chroList[n].getSpan()
-                s2, e2 = chroList[n + 1].getSpan()
-                if e1 + 1 != s2 and inPhrase:
-                    # print("has new line: " + str(chroList[n]))
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                    inPhrase = False
-
+        if chroList[n].isNumeric():
+            if inPhrase and containsNumericToken(tmpPhrase) and containsDurationToken(tmpPhrase):
+                phrases.append(createTPEntity(tmpPhrase, id_counter))
+                id_counter = id_counter + 1
+            tmpPhrase = []
+            tmpPhrase.append(chroList[n])
+            inPhrase=True
+        elif chroList[n].isTemporal():
+            tmpPhrase.append(chroList[n])
         else:
-            if inPhrase:
-                inPhrase = False
-                if len(tmpPhrase) != 1:
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                elif not tmpPhrase[0].isNumeric():
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                elif tmpPhrase[0].isNumeric() and tmpPhrase[0].isTemporal():
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter = id_counter + 1
-                    tmpPhrase = []
-                else:
-                    tmpPhrase = []
+            if inPhrase and containsNumericToken(tmpPhrase) and containsDurationToken(tmpPhrase):
+                phrases.append(createTPEntity(tmpPhrase, id_counter))
+                id_counter = id_counter + 1
+            tmpPhrase = []
+            inPhrase = False
+    if inPhrase and containsDurationToken(tmpPhrase) and containsNumericToken(tmpPhrase):
+        phrases.append(createTPEntity(tmpPhrase, id_counter))
+        id_counter = id_counter + 1
     return phrases
 ## Takes in a Reference List that has had numeric and Frequency tokens marked, and identifies all the
 ## temporal phrases by finding consecutive temporal tokens.
@@ -868,6 +812,19 @@ def getFrequencyPhrases(chroList):
 
     return phrases
 
+def containsNumericToken(tmpPhrase):
+    for tok in tmpPhrase:
+        if tok.isNumeric():
+            return True
+
+    return False
+def containsDurationToken(tmpPhrase):
+    terms = ["day", "week", "minute", "second", "hour",
+             "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins"]
+    for tok in tmpPhrase:
+        if tok in terms:
+            return True
+    return False
 
 ## Takes in a list of reference tokens and returns true if it contains something that can be considered a valid Frequency on its own
 # @author Grant Matteo
