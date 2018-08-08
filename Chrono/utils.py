@@ -62,7 +62,6 @@ import copy
 # @return text String containing the raw text blob from reading in the file.
 # @return tokenized_text A list containing each token that was seperated by white space.
 # @return spans The coordinates for each token.
-
 def getWhitespaceTokens(file_path):
     file = open(file_path, "r")
     text = file.read()
@@ -442,7 +441,6 @@ def isAcronym(tok):
     acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w", "q", "asdir"];
     tok = re.sub('['+string.punctuation+']', '', tok).strip()
     tok=tok.lower();
-
     return tok in acronyms
 def isFreqModifier(tok):
     modifiers=["once", "twice", "each", "every", "daily", "nightly", "at", "as", "ongoing", "every other day", "needed"]
@@ -495,7 +493,8 @@ def combdoseTest(tok):  # may have to fix later
              "fu",
              "y",
              "mg",
-             "l"
+             "mcg",
+             "l",
              "μm",
              "mg",
              "kgbw•d",
@@ -652,6 +651,7 @@ def unitTest(tok):
              "mtrms",
              "g",
              "μw",
+             "mcg",
              "μg",
              "CFU",
              "bpa"
@@ -833,49 +833,38 @@ def getFrequencyPhrases(chroList, text):
             inPhrase=True
             tmpPhrase.append(chroList[n])
             if n == len(chroList) - 1:
-                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
-                    tmpPhrase.pop() #removing trailing transitions
-
-                if isValidFreqPhrase(tmpPhrase):
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter += 1
-
-
-                tmpPhrase = []
-                inPhrase = False
-            elif "\n" in text[start:end+1]:
-                inPhrase = False
-                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
-                    tmpPhrase.pop()  # removing trailing transitions
+                tmpPhrase = trimExcess(tmpPhrase)
                 if isValidFreqPhrase(tmpPhrase):
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter += 1
                 tmpPhrase = []
+                inPhrase = False
         elif inPhrase:
-            if not (n<len(chroList)-1 and chroList[n-1].isNumeric() and chroList[n+1].isNumeric() and normalizedTxt=="to"): #check for ranges of numbers like "one to three"
-                print(chroList[n].getText(), chroList[n+1].getText())
-                inPhrase=False
-                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
-                    tmpPhrase.pop()  # removing trailing transitions
-                if isValidFreqPhrase(tmpPhrase):
-                    phrases.append(createTPEntity(tmpPhrase, id_counter))
-                    id_counter+=1
-                tmpPhrase = []
-            elif (n==len(chroList)-1):
+            if (n<len(chroList)-1 and chroList[n-1].isNumeric() and chroList[n+1].isNumeric() and normalizedTxt=="to"): #check for ranges of numbers like "one to three"
+                tmpPhrase.append(chroList[n])
+            else:
                 inPhrase = False
-                if tmpPhrase[len(tmpPhrase) - 1].isFreqTransition():
-                    tmpPhrase.pop()  # removing trailing transitions
+                tmpPhrase= trimExcess(tmpPhrase)
+
                 if isValidFreqPhrase(tmpPhrase):
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter += 1
                 tmpPhrase = []
     return phrases
+## Takes in a list of reference tokens and returns the list with any excess from the end removed
+# @author Grant Matteo
+# @param items The list of reference tokens
+def trimExcess(items):
+    if items[len(items) - 1].isFreqTransition() or items[len(items)-1].isNumeric():
+        items.pop()  # removing trailing numbers or transitions
+    if len(items)>1 and items[0].isNumeric() and (items[1].isQInterval() or items[1].isFreqModifier()):
+        items.pop(0)
+    return items
 
 
 ## Takes in a list of reference tokens and returns true if it contains something that can be considered a valid Frequency on its own
 # @author Grant Matteo
 # @param items The list of reference tokens
-
 def isValidFreqPhrase(items):
     if len(items) > 1:
         fullText= "".join([item.getText() for item in items])

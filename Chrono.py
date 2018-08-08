@@ -167,6 +167,7 @@ if __name__ == "__main__":
         chrono_master_list, my_freq_ID_counter = BuildEntities.buildChronoList(freqPhrases,
                                                                                  chrono_ID_counter, chroList,
                                                                                  (classifier, args.m), feats)
+
         chrono_master_list.append((BuildEntities.buildChronoList(doseDurationPhrases,
                                                                              chrono_ID_counter, chroList,
                                                                              (classifier, args.m), feats))[0])

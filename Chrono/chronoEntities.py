@@ -161,7 +161,8 @@ class ChronoFrequencyEntity(ChronoEntity):
 
     def print_xml(self):
         return (super().print_xml()) + "\t<Type>{}</Type>\n\t\t\t<Text>{}</Text>\n\t\t</properties>\n\t</entity>\n".format("Frequency", self.text)
-
+    def print_ann(self):
+        return ("T{}\tFrequency {} {}\t{}", self.id, self.span[0], self.span[1], self.text)
 class ChronoDoseDurationEntity(ChronoEntity):
     def __init__(self, entityID, start_span, end_span, dose_type, number, text,
                  modifier=None):
@@ -194,6 +195,8 @@ class ChronoDoseDurationEntity(ChronoEntity):
         return (super().print_xml() + "\t<Type>{}</Type>\n\t\t\t<Text>{}</Text>\n\t\t\t<Number>{}</Number>\n"
                                       "\t\t\t<Modifier>{}</Modifier>\n\t\t</properties>\n\t</entity>\n".format(
             self.dose_type, self.text, self.number or '', self.modifier or ''))
+    def print_ann(self):
+        return ("T{}\tDuration {} {}\t{}", self.id, self.span[0], self.span[1], self.text)
 ## Super class for Intervals which are defined as years
 class ChronoIntervalEntity(ChronoEntity):
     def __init__(self, entityID, start_span, end_span, type):
