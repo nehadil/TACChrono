@@ -168,9 +168,9 @@ if __name__ == "__main__":
                                                                                  chrono_ID_counter, chroList,
                                                                                  (classifier, args.m), feats)
 
-        chrono_master_list.append((BuildEntities.buildChronoList(doseDurationPhrases,
-                                                                             chrono_ID_counter, chroList,
-                                                                             (classifier, args.m), feats))[0])
+        #chrono_master_list.append((BuildEntities.buildChronoList(doseDurationPhrases,
+        #                                                                     chrono_ID_counter, chroList,
+        #                                                                     (classifier, args.m), feats))[0])
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
         utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])

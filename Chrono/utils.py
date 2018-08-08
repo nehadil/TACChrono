@@ -789,7 +789,6 @@ def getFrequencyPhrases(chroList, text):
             else:
                 inPhrase = False
                 tmpPhrase= trimExcess(tmpPhrase)
-
                 if isValidFreqPhrase(tmpPhrase):
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter += 1
@@ -823,6 +822,8 @@ def containsDurationToken(tmpPhrase):
 # @author Grant Matteo
 # @param items The list of reference tokens
 def isValidFreqPhrase(items):
+    for it in items:
+        print()
     if len(items) > 1:
         fullText= "".join([item.getText() for item in items])
         return (re.search("\%", fullText) is None)
