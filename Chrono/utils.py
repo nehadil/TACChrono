@@ -450,7 +450,7 @@ def isFreqModifier(tok):
     return tok in modifiers
 ##These should only show up in the middle of a Frequency phrase, otherwise, something is wrong.
 def isFreqTransition(tok):
-    modifiers=["if", "times", "time", "per", "a", "w"]
+    modifiers=["if", "times", "time", "per", "a", "w", "and"]
     tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
     tok = tok.lower()
     return tok in modifiers
@@ -856,6 +856,7 @@ def getFrequencyPhrases(chroList, text):
 # @author Grant Matteo
 # @param items The list of reference tokens
 def trimExcess(items):
+    #print("trim: ", [item.getText() for item in items])
     while len(items)>0 and (items[len(items) - 1].isFreqTransition() or items[len(items)-1].isNumeric()):
         items.pop()  # removing trailing numbers or transitions
     firstNonNum=0
@@ -871,7 +872,6 @@ def trimExcess(items):
     while (n <len(items)):
         normalizedText = re.sub( '['+ string.punctuation+ ']', '', items[n].getText()).lower().strip()
         if (normalizedText == "as"):
-            print("found an as!")
             foundAs=True
             if (n==len(items)-1):
                 items.pop(n)
@@ -909,6 +909,7 @@ def containsDurationToken(tmpPhrase):
 # @author Grant Matteo
 # @param items The list of reference tokens
 def isValidFreqPhrase(items):
+  #  print("valid?: ",[item.getText() for item in items])
     if len(items) > 1:
         fullText= "".join([item.getText() for item in items])
         return (re.search("\%", fullText) is None)
@@ -919,7 +920,7 @@ def isValidFreqPhrase(items):
 
 
         texts= [re.sub("["+string.punctuation+ "]", "", item.getText().lower()) for item in items]
-        singulars=["daily", "nightly"]
+        singulars=["daily", "nightly", "tuthsa", "mowefr"]
         intersect =  list(set(texts) & set(singulars)) #find if the texts has any singulars in it
         return len(intersect)>0
 

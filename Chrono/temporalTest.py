@@ -89,7 +89,8 @@ def hasDayOfWeek(text):
     
     #define my day lists
     full_day = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
-    abbr_day = ["mon","tues","wed","thurs","fri","sat","sun", "mo", "tu", "we", "th", "fr", "sa", "su", "mowefr"]
+    abbr_day = ["mon","tues","wed","thurs","fri","sat","sun", "mo", "tu", "we", "th", "fr", "sa", "su", "mowefr", "tuthsa"]
+
     answer = next((m for m in full_day if m in text_norm), None)
     if answer is not None:
         return True

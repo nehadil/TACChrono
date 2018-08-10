@@ -50,8 +50,7 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
                 if(ref.isNumeric()):
                     containsnum = True
                     break
-                elif tt.hasDoseDuration(ref.getText().lower()):
-                else:
+                elif not tt.hasDoseDuration(ref.getText().lower()):
                     return chrono_list, chrono_id
     if containsnum ==False:
         return chrono_list, chrono_id
