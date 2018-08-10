@@ -1,0 +1,42 @@
+1:     ten day
+5:     for 5 days
+2:     48 hours
+3:     for 1 week
+1:     two week
+2:     21 day course
+2:     for 20 doses
+2:     delayed release
+1:     for seven days
+1:     for 6 weeks
+2:     14 day course
+1:     five day
+3:     for 3 days
+1:     7 days
+1:     for 2 more days
+1:     for 8 hours followed by another 8 hours
+2:     10 day
+1:     8d course
+4:     for 10 days
+9:     14 day
+4:     for 2 days
+2:     21 day
+3:     8 day
+3:     chronic
+1:     14 days
+1:     three doses
+1:     for 1 doses
+1:     for 2 weeks
+1:     7days
+9:     for 7 days
+2:     8d
+2:     7 day
+3:     standing
+1:     4 days
+1:     as needed
+1:     10d course
+1:     pm
+2:     5 day
+4:     prn
+1:     for 3 weeks
+1:     until 24hours afebrile
+1:     seven day
