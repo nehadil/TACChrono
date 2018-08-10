@@ -5,6 +5,7 @@ from Chrono import chronoEntities as chrono, utils
 from Chrono.TimePhraseToChrono.Modifier import hasModifier
 from Chrono.utils import calculateSpan
 from chronoML import ChronoKeras
+from Chrono import temporalTest as tt
 
 
 ## Parses a TimePhrase entity's text field to determine if it contains a calendar interval or period phrase, then builds the associated chronoentity list
@@ -21,6 +22,8 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     #print("In buildPeriodInterval(), TimePhrase Text: " + s.getText())
     bad = re.compile(r"^q\d|^Q\d")
     parts = s.getText().split()
+    containsnum = False
+
     if isDoseDuration(parts[0]):
         return chrono_list, chrono_id
     if "every" in s.getText().lower() or "time" in s.getText().lower() or "per" in s.getText().lower():
@@ -39,9 +42,19 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
         return chrono_list, chrono_id
     if "past" in s.getText().lower() or "ago" in s.getText().lower():
         return chrono_list, chrono_id
-
     if "RANDOM" in s.getText():
         return chrono_list,chrono_id
+    for part in parts:
+        for ref in ref_list:
+            if ref.getText().lower() == part.lower():
+                if(ref.isNumeric()):
+                    containsnum = True
+                    break
+                elif tt.hasDoseDuration(ref.getText().lower()):
+                else:
+                    return chrono_list, chrono_id
+    if containsnum ==False:
+        return chrono_list, chrono_id
 
     boo, val, idxstart, idxend, plural = hasDoseDuration(s)
     if boo:
@@ -272,8 +285,8 @@ def hasDoseDuration(tpentity):
     #print("text list: " + str(text_list))
 
     # define my period lists
-    terms = ["day", "week","minute", "second", "hour",
-             "days", "weeks", "months", "minutes", "seconds", "hours", "hrs", "min", "mins"]  #, "date"]
+    terms = ["day", "week","hour",
+             "days", "weeks", "months", "hours", "hrs"]  #, "date"]
 
     # figure out if any of the tokens in the text_list are also in the interval list
     intersect = list(set(text_list) & set(terms))
@@ -293,10 +306,6 @@ def hasDoseDuration(tpentity):
             return True, "Week", start_idx, end_idx, False
         elif this_term in ["month", "monthly", "months"]:
             return True, "Month", start_idx, end_idx, False
-        elif this_term in ["minute", "minutes", "min", "mins"]:
-            return True, "Minute", start_idx, end_idx, False
-        elif this_term in ["second", "seconds"]:
-            return True, "Second", start_idx, end_idx, False
         elif this_term in ["hour", "hourly", "hours", "hrs"]:
 
             return True, "Hour", start_idx, end_idx, False
@@ -348,8 +357,8 @@ def hasEmbeddedPeriodInterval(tpentity):
 
     # define my period/interval term lists
     terms = ["day", "week",
-             "month", "minute", "second", "hour",
-             "days", "weeks", "months", "minutes", "seconds", "hours", "hrs", "min", "mins"] #, "date"]
+             "month",  "hour",
+             "days", "weeks", "months", "hours", "hrs"] #, "date"]
 
     ## if the term does not exist by itself it may be a substring. Go through each word in the TimePhrase string and see if a substring matches.
     for t in text_list:
@@ -373,10 +382,6 @@ def hasEmbeddedPeriodInterval(tpentity):
                         return True, "Week", start_idx, end_idx, sub1
                     elif this_term in ["month", "monthly", "months"]:
                         return True, "Month", start_idx, end_idx, sub1
-                    elif this_term in ["minute", "minutes"]:
-                        return True, "Minute", start_idx, end_idx, sub1
-                    elif this_term in ["second", "seconds"]:
-                        return True, "Second", start_idx, end_idx, sub1
                     elif this_term in ["hour", "hourly", "hours"]:
                         return True, "Hour", start_idx, end_idx, sub1
 
@@ -388,8 +393,8 @@ def isDoseDuration(text):
     text = text.lower()
     text_norm = text.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).strip()
     terms = ["day", "week",
-             "month", "minute", "second", "hour",
-             "days", "weeks", "months", "minutes", "seconds", "hours",  "hrs", "min", "mins"]
+             "month", "hour",
+             "days", "weeks", "months",  "hours",  "hrs"]
 
     if text_norm in terms:
         return True
@@ -411,9 +416,5 @@ def getDoseDurationValue(val):
         return("Months")
     elif val == "Hour":
         return("Hours")
-    elif val == "Minute":
-        return("Minutes")
-    elif val == "Second":
-        return("Seconds")
     else:
         return(val)

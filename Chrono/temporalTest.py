@@ -140,8 +140,8 @@ def hasDoseDuration(text):
 
     # define my period lists
     terms = ["day", "week", "month",
-             "daily", "weekly", "monthly", "minute", "second", "hour", "hourly", "days",
-             "weeks", "months", "minutes", "seconds", "hours", "prn"]  # ,"recently"]
+             "daily", "weekly", "monthly", "hour", "hourly", "days",
+             "weeks", "months", "hours", "prn"]  # ,"recently"]
     ## possibly add in abbreviations like yr, sec, min, etc.
 
     answer = next((m for m in terms if m in text_norm), None)
