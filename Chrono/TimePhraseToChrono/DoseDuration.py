@@ -298,6 +298,7 @@ def hasDoseDuration(tpentity):
         elif this_term in ["second", "seconds"]:
             return True, "Second", start_idx, end_idx, False
         elif this_term in ["hour", "hourly", "hours", "hrs"]:
+
             return True, "Hour", start_idx, end_idx, False
         else:
             return False, None, None, None, None
@@ -389,6 +390,7 @@ def isDoseDuration(text):
     terms = ["day", "week",
              "month", "minute", "second", "hour",
              "days", "weeks", "months", "minutes", "seconds", "hours",  "hrs", "min", "mins"]
+
     if text_norm in terms:
         return True
     else:

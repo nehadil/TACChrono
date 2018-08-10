@@ -813,6 +813,7 @@ def getDoseDurationPhrases(chroList):
                     tmpPhrase = []
                 else:
                     tmpPhrase = []
+
     return phrases
 ## Takes in a Reference List that has had numeric and Frequency tokens marked, and identifies all the
 ## temporal phrases by finding consecutive temporal tokens.
@@ -872,8 +873,10 @@ def containsDurationToken(tmpPhrase):
     terms = ["day", "week", "minute", "second", "hour",
              "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins"]
     for tok in tmpPhrase:
+
         print("tok:",tok.getText())
         if tok.getText().lower() in terms:
+
             return True
     return False
 
