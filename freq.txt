@@ -1,0 +1,175 @@
+2:     2 times a day as needed
+1:     at hs
+30:     twice a day
+1:     every twelve  12  hours as needed
+3:     every six  6  hours as needed
+6:     q24h
+4:     tid prn
+1:     twice daily as needed
+2:     once a week
+1:     q8hrs
+1:     every 1 hour as needed
+3:     day
+4:     qhs  once a day  at bedtime
+1:     q day
+1:     q2h  every 2 hours  as needed
+8:     bid prn
+1:     every 6 hours as needed
+1:     mo we fr
+1:     q8
+11:     at bedtime
+7:     hs  at bedtime  as needed
+18:     prn
+8:     qid  4 times a day  as needed
+6:     q4 6h  every 4 to 6 hours  as needed
+2:     am
+2:     qid  4 times a day
+4:     q8h
+8:     q4h  every 4 hours  as needed
+1:     six  6  hours as needed
+7:     twice daily
+15:     qhs
+1:     q1h as needed
+8:     once daily
+7:     q6h prn
+1:     q 12h  every 12 hours
+1:     every morning
+1:     at bedtime as needed
+4:     qpm
+35:     bid
+13:     qam
+1:     daily as needed
+10:     q24h  every 24 hours
+1:     q8h  every 8
+6:     q6h  every 6 hours
+1:     q 2 to 4 hours prn
+11:     tid  3 times a day
+5:     every six  6  hours
+2:     every eight  8  hours
+2:     q6 prn
+1:     every 6 8 hours as needed
+2:     once prn
+1:     q6hrs
+5:     q6h as needed
+1:     every    5 9    hours
+1:     every    3 16    hours as needed
+2:     three times a day
+1:     q72h
+13:     tid
+3:     twice a day as needed
+168:     daily
+1:     qd prn
+1:     nightly prn
+1:     q2 prn
+61:     daily  daily
+10:     q12h
+1:     three per day
+2:     b i d
+7:     bid  2 times a day  as needed
+1:     breakfast
+13:     as needed
+4:     q6h
+1:     asdir
+4:     q8h  every 8 hours  as needed
+1:     q24h as needed
+2:     pm
+8:     daily prn
+4:     q4h
+1:     q2h
+1:     q6hrs  prn
+1:     three times daily
+1:     with meals
+1:     bid  prn as needed
+18:     hs
+1:     1
+1:     every 8 hours as needed
+1:     hs prn
+1:     q24hr
+2:     every other day
+1:     one  1
+3:     qday
+2:     q4hrs
+2:     q 4 to 6 hours prn
+4:     qid
+4:     qod
+1:     q48h  every 48 hours
+1:     tu th sa
+2:     prn  tid generally
+1:     q3 4h prn
+3:     3x week
+5:     every four  4  hours as needed
+1:     noon
+1:     every twelve  12  hours
+1:     night
+2:     ongoing
+2:     q6hours prn
+4:     hs  at bedtime
+1:     bid prn as needed
+1:     q8hr prn
+1:     tid w meals
+3:     at night
+1:     q4 6h as needed
+1:     24 hour period
+1:     qmowefr
+1:     every eight hours prn
+21:     q6h  every 6 hours  as needed
+8:     tid  3 times a day  as needed
+2:     breakfast lunch dinner bedtime
+4:     qid prn
+2:     tid w meals  3 times a day with meals
+1:     hs as needed
+2:     q12
+17:     qd
+1:     12 hours on and 12 hours off
+1:     q24
+2:     once daily at 4 pm
+29:     bid  2 times a day
+2:     bedtime
+1:     three  3  to four  4  hours only if necessary
+1:     3 6 hours
+1:     qhs as needed
+1:     eight  8  hours as needed
+4:     daily and prn
+1:     q weeks
+1:     asdir  as directed
+2:     once
+12:     2 times a day
+1:     every eight  8  hours as needed
+4:     four times a day
+1:     every 6 hours
+1:     prn q6h
+4:     once a day as needed
+1:     inhalation
+3:     prn  as needed  as needed
+2:     q6 hours
+1:     qmowefr  monday  wednesday friday
+2:     prn  as needed
+4:     week
+3:     once  once
+3:     every 4 hours as needed
+5:     daily  daily  as needed
+1:     for 1 doses
+1:     breakfast  lunch  dinner
+1:     4x week
+1:     q4h  every 4 hours prn
+1:     p r n
+1:     twice
+2:     q8h  every 8 hours
+1:     three times daily with meals
+1:     qmonth
+3:     q8h as needed
+1:     q monday
+3:     q d
+9:     q4h prn
+2:     2 times a day  as needed
+1:     3x week  mo we fr
+2:     q8h prn
+49:     once a day
+1:     am pm
+1:     every  morning
+1:     per week
+8:     q12h  every 12 hours
+2:     q72h  every 72 hours
+3:     q4h as needed
+1:     twice a d
+1:     qhs  once a day  at bedtime   as needed

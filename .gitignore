@@ -24,6 +24,7 @@ task6/__pycache__/t6Entities.cpython-36.pyc
 baseline_resultsTest
 jars
 venv/*
+data/*
 resultsTest
 resultsTrain
 Chrono/sutime

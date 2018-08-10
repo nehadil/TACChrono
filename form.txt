@@ -1,0 +1,108 @@
+11:    adhesive patch  medicated
+1:    capsule  delayed release
+20:    tablet  chewable
+2:    elixir
+12:    syringe
+1:    adhesive patch  medicated s
+3:    mouthwash
+2:    nebulizers
+4:    sprays
+1:    ir
+5:    pen
+4:    capsule  delayed release  e c
+1:    enteric coated
+1:    hd
+2:    tablet  er particles crystals
+7:    powder
+1:    tablet  delayed release
+1:    picc
+47:    solution
+1:    flushes
+2:    aerosol  spray
+2:    tablet sustained release 12 hr
+5:    tablet  rapid dissolve
+1:    eye drops
+1:    tablet extended release s
+2:    piggyback
+6:    syrup
+4:    tabs
+8:    aerosol
+1:    capsule  delayed release e c   s
+1:    spray  non aerosol
+80:    capsule
+5:    tablet sustained release 24 hr
+9:    liquid
+1:    tablet   delayed release  e c
+2:    pills
+1:    neb inhalation
+1:    tablet  delayed release  e c   s
+2:    tab sust rel  particle crystal s
+4:    tablet rapid dissolve  dr
+3:    hfa aerosol inhaler
+15:    suspension
+2:    injections
+1:    in dextrose
+5:    lotion
+1:    pill
+444:    tablet
+2:    table
+2:    amps
+6:    capsule s
+10:    cap
+10:    injection
+1:    tablet  rapid dissolves
+5:    drops
+2:    suppository
+2:    nebs
+3:    treatment
+2:    disk
+1:    adhesive patch
+5:    recon soln
+3:    nebulizer
+1:    tablet sustained release 24 hrs
+1:    tablet  chewable s
+2:    ointment
+13:    appl
+31:    tablet s
+3:    drop
+3:    aerosol inhaler
+9:    tablet sustained release
+1:    cartridge
+2:    spry
+2:    patch 24hr
+4:    capsule  sust  release 24 hr
+2:    mg
+1:    inhalation
+21:    tablets
+1:    transfusion
+3:    capsule  delayed release e c
+3:    patches
+4:    capsule  w inhalation device
+11:    puff
+5:    disk with device
+2:    tablet sustained release 24hr
+5:    cream
+2:    tablet sustained release 24 hr s
+16:    patch
+2:    diskus
+2:    lozenge
+7:    tablet extended release
+2:    packet
+1:    syringes
+4:    patch 72 hr
+13:    tab
+5:    solution for nebulization
+4:    mdi
+1:    applications
+4:    flush
+4:    ml
+3:    puffs
+1:    parenteral solution
+1:    tablet sustained release 12 hr s
+2:    tablet  er multiphase 12 hr
+2:    eye gtt
+2:    units
+1:    infusion
+4:    tab sust rel  particle crystal
+39:    tablet  delayed release  e c
+1:    gel in packet
