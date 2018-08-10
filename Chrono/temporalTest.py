@@ -71,6 +71,11 @@ def hasTextMonth(text):
 ####
 #END_MODULE
 ####
+def hasFor(text):
+    text_norm = text.translate(str.maketrans("", "", ","))
+    if text_norm.lower()=="for":
+        return True
+    return False
 
 ## Takes in a single text string and identifies if it is a day of the week
 # @author Amy Olex

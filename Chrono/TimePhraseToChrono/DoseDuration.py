@@ -19,11 +19,11 @@ from Chrono import temporalTest as tt
 def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     features = feats.copy()
     ref_Sspan, ref_Espan = s.getSpan()
+    print(s.getText(),s.getSpan())
     #print("In buildPeriodInterval(), TimePhrase Text: " + s.getText())
     bad = re.compile(r"^q\d|^Q\d")
     parts = s.getText().split()
     containsnum = False
-
     if isDoseDuration(parts[0]):
         return chrono_list, chrono_id
     if "every" in s.getText().lower() or "time" in s.getText().lower() or "per" in s.getText().lower():
@@ -45,21 +45,24 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     if "RANDOM" in s.getText():
         return chrono_list,chrono_id
     for part in parts:
+        part = re.sub('[' + string.punctuation + ']', '', part).strip()
         for ref in ref_list:
             if ref.getText().lower() == part.lower():
                 if(ref.isNumeric()):
                     containsnum = True
+                    if utils.isOrdinal(ref.getText()):
+                        return chrono_list, chrono_id
                     break
-                elif tt.hasDoseDuration(ref.getText().lower()):
-                else:
+
+                elif not tt.hasDoseDuration(ref.getText().lower()):
                     return chrono_list, chrono_id
     if containsnum ==False:
         return chrono_list, chrono_id
 
     boo, val, idxstart, idxend, plural = hasDoseDuration(s)
     if boo:
-        abs_Sspan = ref_Sspan + idxstart
-        abs_Espan = ref_Sspan + idxend
+        abs_Sspan = ref_Sspan
+        abs_Espan = ref_Espan
 
         # get index of overlapping reference token
         # ref_idx = -1
@@ -163,40 +166,14 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
                         chrono_id = chrono_id + 1
 
         # check to see if it has a number associated with it.  We assume the number comes before the interval string
-        if idxstart > 0:
-            substr = s.getText()[0:idxstart]
-            m = re.search('([0-9]{1,2})', substr)
-            if m is not None:
-                num_val = m.group(0)
-                abs_Sspan = ref_Sspan + m.span(0)[0]
-                abs_Espan = ref_Sspan + m.span(0)[1]
 
-                my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=abs_Sspan,
-                                                       end_span=abs_Espan, value=num_val)
-                chrono_id = chrono_id + 1
-
-                # add the number entity to the list
-                chrono_list.append(my_number_entity)
-                my_entity.set_number(my_number_entity.get_id())
-            # else search for a text number
-            else:
-                texNumVal = utils.getNumberFromText(substr)
-                if texNumVal is not None:
-                    # create the number entity
-                    my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=ref_Sspan,
-                                                           end_span=ref_Sspan + (idxstart - 1), value=texNumVal)
-                    chrono_id = chrono_id + 1
-                    # append to list
-                    chrono_list.append(my_number_entity)
-                    # link to interval entity
-                    my_entity.set_number(my_number_entity.get_id())
 
         chrono_list.append(my_entity)
     else:
         boo2, val, idxstart, idxend, numstr = hasEmbeddedPeriodInterval(s)
         if(boo2):
-            abs_Sspan = ref_Sspan + idxstart
-            abs_Espan = ref_Sspan + idxend
+            abs_Sspan = ref_Sspan
+            abs_Espan = ref_Espan
 
             # get index of overlapping reference token
             ref_idx = -1
@@ -228,33 +205,7 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
 
             substr = s.getText()[:idxstart] ## extract entire first part of TimePhrase phrase
             m = re.search('([0-9]{1,2})', substr) #search for an integer in the subphrase and extract it's coordinates
-            if m is not None :
-                num_val = m.group(0)
-                abs_Sspan = ref_Sspan + m.span(0)[0]
-                abs_Espan = ref_Sspan + m.span(0)[1]
 
-                my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, value=num_val)
-                chrono_id = chrono_id + 1
-
-                #add the number entity to the list
-                chrono_list.append(my_number_entity)
-                #link to interval entity
-                my_entity.set_number(my_number_entity.get_id())
-            #else search for a text number
-            else:
-                texNumVal = utils.getNumberFromText(numstr)
-                if texNumVal is not None:
-                    m = re.search(numstr, substr) #search for the number string in the subphrase
-                    if m is not None :
-                        abs_Sspan = ref_Sspan + m.span(0)[0]
-                        abs_Espan = ref_Sspan + m.span(0)[1]
-                        #create the number entity
-                        my_number_entity = chrono.ChronoNumber(entityID=str(chrono_id) + "entity", start_span=abs_Sspan, end_span=abs_Espan, value=texNumVal)
-                        chrono_id = chrono_id + 1
-                        #append to list
-                        chrono_list.append(my_number_entity)
-                        #link to interval entity
-                        my_entity.set_number(my_number_entity.get_id())
 
             chrono_list.append(my_entity)
 

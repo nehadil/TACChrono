@@ -107,7 +107,14 @@ def write_xml(chrono_list, outfile):
     fout.close()
  ####
  #END_MODULE
- ####   
+ ####
+
+def write_ann(chrono_list, outfile):
+ fout = open(outfile + ".ann", "w")
+ for c in chrono_list:
+     if not type(c) == list:
+        fout.write(str(c.print_ann()) + "\n")
+
 
 
 ## Marks all the reference tokens that show up in the TimePhrase entity list.
@@ -637,6 +644,8 @@ def temporalTest(tok):
         return True, 10
     if tt.hasDoseDuration(tok):
         return True, -1
+    #if tt.hasFor(tok):     I'm not sure if I'm going to use this or not yet
+     #   return True, -1
     else:
         return False, -1
 
