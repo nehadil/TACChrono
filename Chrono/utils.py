@@ -107,7 +107,14 @@ def write_xml(chrono_list, outfile):
     fout.close()
  ####
  #END_MODULE
- ####   
+ ####
+
+def write_ann(chrono_list, outfile):
+ fout = open(outfile + ".ann", "w")
+ for c in chrono_list:
+     if not type(c) == list:
+        fout.write(str(c.print_ann()) + "\n")
+
 
 
 ## Marks all the reference tokens that show up in the TimePhrase entity list.
@@ -447,18 +454,18 @@ def isQStatement(tok):
 # @param refToks The list of reference Tokens
 # @return modified list of reftoks
 def isAcronym(tok):
-    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "w", "q", "asdir"];
+    acronyms= ["hs","qhs","bid","qid","qod","tid","prn", "qam", "qpm", "q", "asdir"];
     tok = re.sub('['+string.punctuation+']', '', tok).strip()
     tok=tok.lower();
     return tok in acronyms
 def isFreqModifier(tok):
-    modifiers=["once", "twice", "each", "every", "daily", "nightly", "at", "as", "ongoing", "every other day", "needed"]
+    modifiers=["once", "twice", "each", "every", "daily", "nightly", "at", "as", "ongoing", "every other day", "needed", "wmeals", "meals"]
     tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
     tok = tok.lower()
     return tok in modifiers
 ##These should only show up in the middle of a Frequency phrase, otherwise, something is wrong.
 def isFreqTransition(tok):
-    modifiers=["if", "times", "time", "per", "a"]
+    modifiers=["if", "times", "time", "per", "a", "w", "and"]
     tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
     tok = tok.lower()
     return tok in modifiers
@@ -645,6 +652,8 @@ def temporalTest(tok):
         return True, 10
     if tt.hasDoseDuration(tok):
         return True, -1
+    #if tt.hasFor(tok):     I'm not sure if I'm going to use this or not yet
+     #   return True, -1
     else:
         return False, -1
 
@@ -859,7 +868,6 @@ def getFrequencyPhrases(chroList, text):
             else:
                 inPhrase = False
                 tmpPhrase= trimExcess(tmpPhrase)
-
                 if isValidFreqPhrase(tmpPhrase):
                     phrases.append(createTPEntity(tmpPhrase, id_counter))
                     id_counter += 1
@@ -869,10 +877,36 @@ def getFrequencyPhrases(chroList, text):
 # @author Grant Matteo
 # @param items The list of reference tokens
 def trimExcess(items):
-    if items[len(items) - 1].isFreqTransition() or items[len(items)-1].isNumeric():
+    #print("trim: ", [item.getText() for item in items])
+    while len(items)>0 and (items[len(items) - 1].isFreqTransition() or items[len(items)-1].isNumeric()):
         items.pop()  # removing trailing numbers or transitions
-    if len(items)>1 and items[0].isNumeric() and (items[1].isQInterval() or items[1].isFreqModifier()):
+    firstNonNum=0
+    while (firstNonNum<len(items)-1) and (items[firstNonNum].isNumeric()):
+        firstNonNum += 1
+    while len(items)>1 and items[0].isNumeric() and (items[firstNonNum].isQInterval() or items[firstNonNum].isFreqModifier()):
         items.pop(0)
+        firstNonNum-=1;
+    asFollowers= ["needed", "directed"]
+    # AS should always be followed by "needed" or "directed", and needed and directed should always be preceded by "as"
+    foundAs=False
+    n=0
+    while (n <len(items)):
+        normalizedText = re.sub( '['+ string.punctuation+ ']', '', items[n].getText()).lower().strip()
+        if (normalizedText == "as"):
+            foundAs=True
+            if (n==len(items)-1):
+                items.pop(n)
+        elif (normalizedText in asFollowers and not foundAs):
+            items.pop(n)
+            foundAs=False
+        elif (foundAs and normalizedText not in asFollowers):
+            items.pop(n)
+            foundAs=False
+        else:
+            foundAs=False
+        n+=1
+
+
     return items
 
 ## Checks if there is a number in the phrase
@@ -905,6 +939,7 @@ def containsDurationToken(tmpPhrase):
 # @author Grant Matteo
 # @param items The list of reference tokens
 def isValidFreqPhrase(items):
+  #  print("valid?: ",[item.getText() for item in items])
     if len(items) > 1:
         fullText= "".join([item.getText() for item in items])
         return (re.search("\%", fullText) is None)
@@ -914,8 +949,8 @@ def isValidFreqPhrase(items):
                 return True
 
 
-        texts= [item.getText().lower() for item in items]
-        singulars=["daily", "nightly"]
+        texts= [re.sub("["+string.punctuation+ "]", "", item.getText().lower()) for item in items]
+        singulars=["daily", "nightly", "tuthsa", "mowefr"]
         intersect =  list(set(texts) & set(singulars)) #find if the texts has any singulars in it
         return len(intersect)>0
 

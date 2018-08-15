@@ -199,7 +199,7 @@ class ChronoDoseDurationEntity(ChronoEntity):
                                       "\t\t\t<Modifier>{}</Modifier>\n\t\t</properties>\n\t</entity>\n".format(
             self.dose_type, self.text, self.number or '', self.modifier or ''))
     def print_ann(self):
-        return ("T{}\tDuration {} {}\t{}", self.id, self.span[0], self.span[1], self.text)
+        return ("T{}\tDuration {} {}\t{}".format( self.entityID, self.start_span, self.end_span, self.text))
 ## Super class for Intervals which are defined as years
 class ChronoIntervalEntity(ChronoEntity):
     def __init__(self, entityID, start_span, end_span, type):
@@ -1374,6 +1374,8 @@ class ChronoNumber(ChronoOtherEntity):
     def print_xml(self):
         return (super().print_xml() + "\t<Value>{}</Value>\n\t\t</properties>\n\t"
                                       "</entity>\n".format(self.value))
+    def print_ann(self):
+        return ("T{}\tDuration {} {}\t{}".format(self.entityID, self.start_span, self.end_span, self.value))#HAVE TO FIX LATER
 
 
 class ChronoModifier(ChronoOtherEntity):

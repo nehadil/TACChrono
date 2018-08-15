@@ -160,17 +160,19 @@ if __name__ == "__main__":
 
     
         chroList = utils.markNotable(my_refToks)
+        with open("/home/garnt/Documents/ChroDeb.out", "w") as deb:
+            for chro in chroList:
+                deb.write(chro.getFreqDebug()+"\n")
         freqPhrases = utils.getFrequencyPhrases(chroList, text)
         #dosePhrases = utils.getDosePhrases()
         doseDurationPhrases=utils.getDoseDurationPhrases(chroList)
-
         chrono_master_list, my_freq_ID_counter = BuildEntities.buildChronoList(freqPhrases,
                                                                                  chrono_ID_counter, chroList,
                                                                                  (classifier, args.m), feats)
 
-        chrono_master_list.append((BuildEntities.buildChronoList(doseDurationPhrases,
-                                                                             chrono_ID_counter, chroList,
-                                                                             (classifier, args.m), feats))[0])
+        #chrono_master_list.append((BuildEntities.buildChronoList(doseDurationPhrases,
+        #                                                                     chrono_ID_counter, chroList,
+        #                                                                     (classifier, args.m), feats))[0])
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
-        utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
+        utils.write_ann(chrono_list=chrono_master_list, outfile=outfiles[f])
