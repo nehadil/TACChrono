@@ -130,6 +130,9 @@ class ChronoEntity:
                 "\n\t\t<properties>\n\t\t".format(self.entityID, self.start_span,
                                                   self.end_span, self.type, self.parent_type))
 
+# A dose/strength entity
+# @author Neha Dil
+# @param
 class ChronoDoseEntity(ChronoEntity):
     def __init__(self, id, label, span, text):
         super().__init__(id, span[0], span[1], "DosePhrase", None)

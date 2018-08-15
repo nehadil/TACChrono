@@ -139,6 +139,11 @@ def getNumberFromText(text):
         number = isOrdinal(text)
     return number
 
+## Checks to see if each dose phrase is part of a compound "body weight" unit (for TAC)
+# @author Neha Dil
+# @param text The whole text currently being parsed
+# @param dosePhrases List of all the dosePhrases found
+# @return The modified list of dose phrases
 def compoundPhrase(text, dosePhrases):
     nlp = spacy.load('en_core_web_sm')
     doc = nlp(text)
@@ -430,10 +435,13 @@ def markDose(refToks):
 
 
     return refToks
+
 def isQStatement(tok):
     tok = re.sub('[' + string.punctuation + ']', '', tok).strip()
     tok = tok.lower();
     return re.search('q\d{1,2}h(r|rs)?', tok) is not None
+
+
 ## Marks all the reference tokens that are identified as temporal.
 # @author Amy Olex
 # @param refToks The list of reference Tokens
@@ -730,7 +738,12 @@ def unitTest(tok):
 
 ####
 #END_MODULE
-#### 
+####
+
+## Extract dose phrases
+# @author Neha Dil
+# @param chroList List of marked reference tokens
+# @return List of dose duration phrases
 def getDoseDurationPhrases(chroList):
     id_counter = 0
 
@@ -739,7 +752,6 @@ def getDoseDurationPhrases(chroList):
     inPhrase = False
     for n in range(0, len(chroList)):
         if chroList[n].isTemporal():
-            # print("Is Temporal: " + str(chroList[n]))
             if not inPhrase:
                 inPhrase = True
             # in phrase, so add new element
@@ -863,12 +875,21 @@ def trimExcess(items):
         items.pop(0)
     return items
 
+## Checks if there is a number in the phrase
+# @author Neha Dil
+# @param tmpPhrase List of the reference tokens in a phrase
+# @return True if there is a number; otherwise, False
 def containsNumericToken(tmpPhrase):
     for tok in tmpPhrase:
         if tok.isNumeric():
             return True
 
     return False
+
+## Checks if there is a duration word in the phrase
+# @author Neha Dil
+# @param tmpPhrase List of the reference tokens in a phrase
+# @return True if there is a duration word; otherwise, False
 def containsDurationToken(tmpPhrase):
     terms = ["day", "week", "minute", "second", "hour",
              "days", "weeks", "months", "minutes", "seconds", "hours", "hr", "hrs", "min", "mins"]
@@ -898,7 +919,10 @@ def isValidFreqPhrase(items):
         intersect =  list(set(texts) & set(singulars)) #find if the texts has any singulars in it
         return len(intersect)>0
 
-
+## Extract dose phrases (strength phrases in N2C2) from the marked list of reference tokens
+# @author Neha Dil
+# @param chroList The marked list of reference tokens
+# @return phrases List of the dose phrases
 def getDosePhrases(chroList):
     # TimePhraseEntity(id=id_counter, text=j['text'], start_span=j['start'], end_span=j['end'], temptype=j['type'], tempvalue=j['value']=doctime)
 
@@ -965,8 +989,11 @@ def createTPEntity(items, counter):
 
 
 
-
-
+## Takes in the list of reference tokens identified as a dose/strength phrase and returns one DosePhraseEntity
+# @author Neha Dil
+# @param items The list of reference tokens
+# @param counter The ID for this DosePhrase entity
+# @return A single DosePhrase entity with the text span and string concatenated.
 def createDPEntity(items, counter):
     start_span, tmp = items[0].getSpan()
     tmp, end_span = items[len(items) - 1].getSpan()

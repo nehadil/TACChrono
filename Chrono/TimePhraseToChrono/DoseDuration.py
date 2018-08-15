@@ -23,7 +23,7 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     bad = re.compile(r"^q\d|^Q\d")
     parts = s.getText().split()
     containsnum = False
-
+    #various checks to ensure that this phrase is actually a dose duration
     if isDoseDuration(parts[0]):
         return chrono_list, chrono_id
     if "every" in s.getText().lower() or "time" in s.getText().lower() or "per" in s.getText().lower():
@@ -50,8 +50,7 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
                 if(ref.isNumeric()):
                     containsnum = True
                     break
-                elif tt.hasDoseDuration(ref.getText().lower()):
-                else:
+                elif not tt.hasDoseDuration(ref.getText().lower()):
                     return chrono_list, chrono_id
     if containsnum ==False:
         return chrono_list, chrono_id

@@ -130,6 +130,10 @@ def hasPeriodInterval(text):
         return False
 
 
+## Tests to see if string has a dose duration word in it
+# @author Neha Dil
+# @param text The string to be tested
+# @return True if the string contains a dose duration word, otherwise False
 def hasDoseDuration(text):
     # convert to all lower
     text_lower = text.lower()
