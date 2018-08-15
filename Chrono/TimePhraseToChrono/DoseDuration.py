@@ -19,7 +19,6 @@ from Chrono import temporalTest as tt
 def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     features = feats.copy()
     ref_Sspan, ref_Espan = s.getSpan()
-    print(s.getText(),s.getSpan())
     #print("In buildPeriodInterval(), TimePhrase Text: " + s.getText())
     bad = re.compile(r"^q\d|^Q\d")
     parts = s.getText().split()

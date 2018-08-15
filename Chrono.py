@@ -175,4 +175,4 @@ if __name__ == "__main__":
         #                                                                     (classifier, args.m), feats))[0])
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
-        utils.write_ann(chrono_list=chrono_master_list, outfile=outfiles[f])
+        utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])

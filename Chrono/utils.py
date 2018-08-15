@@ -632,8 +632,9 @@ def temporalTest(tok):
     m = re.search('([0-9]{2}:[0-9]{2}:[0-9]{2})', tok)
     if m is not None:
         return True, 1
-    if tt.hasTextMonth(tok):
-        return True, 2
+    #if tt.hasTextMonth(tok):
+        #return True, 2
+        ## THIS RETURNS TRUE FOR STRINGS SUCH AS "DOCTOR" BECAUSE it contains "OCT"
     if tt.hasDayOfWeek(tok):
         return True, 3
     if tt.hasPeriodInterval(tok):

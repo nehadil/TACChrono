@@ -41,7 +41,6 @@ import string
 import re
 from Chrono import utils
 
-
 ## Takes in a single text string and identifies if it is a month of the year
 # @author Amy Olex
 # @param text The text to parse
@@ -53,7 +52,6 @@ def hasTextMonth(text):
     text_norm = text.translate(str.maketrans("", "", ","))
     #convert to list
     #text_list = text_norm.split(" ")
-    
     #define my day lists
     full_month = ["January","February","March","April","May","June","July","August","September","October","November","December","january","february","march","april","may","june","july","august","september","october","november","december"]
     abbr_month = ["Jan.", "Feb.","Mar.","Apr.","Jun.","Jul.","Aug.","Sept.","Oct.","Nov.","Dec.","jan.","feb.","mar.","apr.","jun.","jul.","aug.","sept.","oct.","nov.","dec.", "Jan", "Feb","Mar","Apr","Jun","Jul","Aug","Sept","Oct","Nov","Dec","jan","feb","mar","apr","jun","jul","aug","sept","oct","nov","dec"]
@@ -76,6 +74,7 @@ def hasFor(text):
     if text_norm.lower()=="for":
         return True
     return False
+
 
 ## Takes in a single text string and identifies if it is a day of the week
 # @author Amy Olex

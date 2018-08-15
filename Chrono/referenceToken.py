@@ -175,7 +175,7 @@ class refToken:
                self.acronym or self.numericRange or self.numeric or self.freqModifier or self.qInterval
     ## Returns a string for Frequency debugging
     def getFreqDebug(self):
-        return self.text + " " +str(self.frequencyTransition) + " " + str(self.temporal) + " "+str(self.acronym) + " " +\
+        return self.text + " " +str(self.frequencyTransition) + " " + str(self.temporal) +" "+ str(self.temporalType)+ " "+str(self.acronym) + " " +\
                str(self.numericRange) + " " + str(self.numeric) + " " + str(self.freqModifier) + " " + str(self.qInterval)+ " "+ self.pos
     def isFreqModifier(self):
         return self.freqModifier

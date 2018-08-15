@@ -165,7 +165,7 @@ class ChronoFrequencyEntity(ChronoEntity):
     def print_xml(self):
         return (super().print_xml()) + "\t<Type>{}</Type>\n\t\t\t<Text>{}</Text>\n\t\t</properties>\n\t</entity>\n".format("Frequency", self.text)
     def print_ann(self):
-        return ("T{}\tFrequency {} {}\t{}", self.id, self.span[0], self.span[1], self.text)
+        return ("T{}\tFrequency {} {}\t{}".format(self.id, self.span[0], self.span[1], self.text))
 class ChronoDoseDurationEntity(ChronoEntity):
     def __init__(self, entityID, start_span, end_span, dose_type, number, text,
                  modifier=None):
