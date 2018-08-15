@@ -24,24 +24,43 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
     parts = s.getText().split()
     containsnum = False
     #various checks to ensure that this phrase is actually a dose duration
+
     if isDoseDuration(parts[0]):
+
         return chrono_list, chrono_id
+    
     if "every" in s.getText().lower() or "time" in s.getText().lower() or "per" in s.getText().lower():
+        
         return chrono_list, chrono_id
+    
     if bad.match(s.getText()):
+        
         return chrono_list, chrono_id
+    
     if "/" in s.getText():
+        
         return chrono_list, chrono_id
+    
     if "[**" in s.getText() or "**]" in s.getText():
+        
         return chrono_list, chrono_id
+    
     if "ly" in s.getText():
+        
         return chrono_list, chrono_id
+    
     if "(" in s.getText() or ")" in s.getText():
+        
         return chrono_list, chrono_id
+    
     if "once" in s.getText().lower() or "twice" in s.getText().lower():
+        
         return chrono_list, chrono_id
+    
     if "past" in s.getText().lower() or "ago" in s.getText().lower():
+        
         return chrono_list, chrono_id
+    
     if "RANDOM" in s.getText():
         return chrono_list,chrono_id
     for part in parts:
@@ -52,6 +71,8 @@ def buildDoseDuration(s, chrono_id, chrono_list, ref_list, classifier, feats):
                     break
                 elif not tt.hasDoseDuration(ref.getText().lower()):
                     return chrono_list, chrono_id
+
+
     if containsnum ==False:
         return chrono_list, chrono_id
 

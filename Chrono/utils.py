@@ -66,7 +66,7 @@ def getWhitespaceTokens(file_path):
     file = open(file_path, "r")
     text = file.read()
     ## Testing the replacement of all "=" signs by spaces before tokenizing.
-    text = text.translate(str.maketrans("=", ' '))
+    text = text.translate(str.maketrans("-", ' '))
 
     span_generator = WhitespaceTokenizer().span_tokenize(text)
     spans = [span for span in span_generator]
@@ -636,7 +636,7 @@ def temporalTest(tok):
         #return True, 2
         ## THIS RETURNS TRUE FOR STRINGS SUCH AS "DOCTOR" BECAUSE it contains "OCT"
     if tt.hasDayOfWeek(tok):
-        return True, 3
+       return True, 3
     if tt.hasPeriodInterval(tok):
         return True, 4
     if tt.hasAMPM(tok):
@@ -649,8 +649,8 @@ def temporalTest(tok):
         return True, 8
     if tt.hasTimeZone(tok):
         return True, 9
-    if tt.hasTempText(tok):
-        return True, 10
+    #if tt.hasTempText(tok):
+     #   return True, 10
     if tt.hasDoseDuration(tok):
         return True, -1
     #if tt.hasFor(tok):     I'm not sure if I'm going to use this or not yet
