@@ -1375,7 +1375,7 @@ class ChronoNumber(ChronoOtherEntity):
         return (super().print_xml() + "\t<Value>{}</Value>\n\t\t</properties>\n\t"
                                       "</entity>\n".format(self.value))
     def print_ann(self):
-        return ("T{}\tDuration {} {}\t{}".format(self.entityID, self.start_span, self.end_span, self.value))#HAVE TO FIX LATER
+        return ("T{}\tNumber {} {}\t{}".format(self.entityID, self.start_span, self.end_span, self.value))#HAVE TO FIX LATER
 
 
 class ChronoModifier(ChronoOtherEntity):
