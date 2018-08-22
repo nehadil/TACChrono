@@ -53,8 +53,7 @@ from Chrono import referenceToken
 from Chrono import utils
 from keras.models import load_model
 
-
-debug=False
+debug = False
 ## This is the driver method to run all of Chrono.
 # @param INDIR The location of the directory with all the files in it.
 # @param OUTDIR The location of the directory where you want all the output written.
@@ -62,18 +61,31 @@ debug=False
 # @return Anafora formatted XML files, one directory per file with one XML file in each directory.
 # @return The precision and recall from comparing output results to the gold standard.
 if __name__ == "__main__":
-    
+
     ## Parse input arguments
-    parser = argparse.ArgumentParser(description='Parse a directory of files to identify and normalize temporal information.')
+    parser = argparse.ArgumentParser(
+        description='Parse a directory of files to identify and normalize temporal information.')
     parser.add_argument('-i', metavar='inputdir', type=str, help='path to the input directory.', required=True)
-    parser.add_argument('-x', metavar='fileExt', type=str, help='input file extension if exists. Default is and empty string', required=False, default="")
+    parser.add_argument('-x', metavar='fileExt', type=str,
+                        help='input file extension if exists. Default is and empty string', required=False, default="")
     parser.add_argument('-o', metavar='outputdir', type=str, help='path to the output directory.', required=True)
-    parser.add_argument('-m', metavar='MLmethod', type=str, help='The machine learning method to use. Must be one of NN (neural network), DT (decision tree), SVM (support vector machine), NB (naive bayes, default).', required=False, default='NB')
-    parser.add_argument('-w', metavar='windowSize', type=str, help='An integer representing the window size for context feature extraction. Default is 3.', required=False, default=3)
-    parser.add_argument('-d', metavar='MLTrainData', type=str, help='A string representing the file name that contains the CSV file with the training data matrix.', required=False, default=False)
-    parser.add_argument('-c', metavar='MLTrainClass', type=str, help='A string representing the file name that contains the known classes for the training data matrix.', required=False, default=False)
-    parser.add_argument('-M', metavar='MLmodel', type=str, help='The path and file name of a pre-build ML model for loading.', required=False, default=None)
-    
+    parser.add_argument('-m', metavar='MLmethod', type=str,
+                        help='The machine learning method to use. Must be one of NN (neural network), DT (decision tree), SVM (support vector machine), NB (naive bayes, default).',
+                        required=False, default='NB')
+    parser.add_argument('-w', metavar='windowSize', type=str,
+                        help='An integer representing the window size for context feature extraction. Default is 3.',
+                        required=False, default=3)
+    parser.add_argument('-d', metavar='MLTrainData', type=str,
+                        help='A string representing the file name that contains the CSV file with the training data matrix.',
+                        required=False, default=False)
+    parser.add_argument('-c', metavar='MLTrainClass', type=str,
+                        help='A string representing the file name that contains the known classes for the training data matrix.',
+                        required=False, default=False)
+    parser.add_argument('-M', metavar='MLmodel', type=str,
+                        help='The path and file name of a pre-build ML model for loading.', required=False,
+                        default=None)
+    parser.add_argument('-X', metavar='XMLOUT', type=str, help='1 if you want xml out, 0 otherwise (deafault 0)',
+                        required=False, default='0')
     args = parser.parse_args()
     ## Now we can access each argument as args.i, args.o, args.r
     print(args.i)
@@ -81,56 +93,61 @@ if __name__ == "__main__":
     ## Get list of folder names in the input directory
     indirs = []
     infiles = []
-    outfiles = []
+    xml_outfiles = []
+    ann_outfiles = []
     outdirs = []
-    for root, dirs, files in os.walk(args.i, topdown = True):
-       for name in dirs:
-           indirs.append(os.path.join(root, name))
-           infiles.append(os.path.join(root,name,name))
-           outfiles.append(os.path.join(args.o,name,name))
-           outdirs.append(os.path.join(args.o,name))
-           if not os.path.exists(os.path.join(args.o,name)):
-               os.makedirs(os.path.join(args.o,name))
-    
+    for root, dirs, files in os.walk(args.i, topdown=True):
+        for name in files:
+            if (args.x in name):
+                name = re.sub("\\" + args.x, "", name)
+                indirs.append(os.path.join(root, name))
+                infiles.append(os.path.join(root, name))
+                ann_outfiles.append(os.path.join(args.o, "anns", name))
+                xml_outfiles.append(os.path.join(args.o, name, name))
+                outdirs.append(os.path.join(args.o, name))
+                if args.X == "1" and not os.path.exists(os.path.join(args.o, name)):
+                    os.makedirs(os.path.join(args.o, name))
+                if not os.path.exists(os.path.join(args.o, "anns")):
+                    os.makedirs(os.path.join(args.o, "anns"))
     ## Get training data for ML methods by importing pre-made boolean matrix
     ## Train ML methods on training data
-    if(args.m == "DT" and args.M is None):
+    if (args.m == "DT" and args.M is None):
         ## Train the decision tree classifier and save in the classifier variable
 
         classifier, feats = DTree.build_dt_model(args.d, args.c)
-        with open('DT_model.pkl', 'wb') as mod:  
+        with open('DT_model.pkl', 'wb') as mod:
             pickle.dump([classifier, feats], mod)
 
-    if(args.m == "RF" and args.M is None):
+    if (args.m == "RF" and args.M is None):
         ## Train the decision tree classifier and save in the classifier variable
 
         classifier, feats = RandomForest.build_model(args.d, args.c)
         with open('RF_model.pkl', 'wb') as mod:
             pickle.dump([classifier, feats], mod)
-    
-    elif(args.m == "NN" and args.M is None):
+
+    elif (args.m == "NN" and args.M is None):
 
         ## Train the neural network classifier and save in the classifier variable
         classifier = ChronoKeras.build_model(args.d, args.c)
         feats = utils.get_features(args.d)
         classifier.save('NN_model.h5')
-            
-    elif(args.m == "SVM" and args.M is None):
+
+    elif (args.m == "SVM" and args.M is None):
 
         ## Train the SVM classifier and save in the classifier variable
         classifier, feats = SVMclass.build_model(args.d, args.c)
-        with open('SVM_model.pkl', 'wb') as mod:  
+        with open('SVM_model.pkl', 'wb') as mod:
             pickle.dump([classifier, feats], mod)
-            
-    elif(args.M is None):
+
+    elif (args.M is None):
 
         ## Train the naive bayes classifier and save in the classifier variable
         classifier, feats, NB_input = NBclass.build_model(args.d, args.c)
         classifier.show_most_informative_features(20)
-        with open('NB_model.pkl', 'wb') as mod:  
+        with open('NB_model.pkl', 'wb') as mod:
             pickle.dump([classifier, feats], mod)
-                
-    elif(args.M is not None):
+
+    elif (args.M is not None):
 
         if args.m == "NB" or args.m == "DT":
             with open(args.M, 'rb') as mod:
@@ -139,39 +156,34 @@ if __name__ == "__main__":
         elif args.m == "NN":
             classifier = load_model(args.M)
             feats = utils.get_features(args.d)
-    
+
     ## Pass the ML classifier through to the parse SUTime entities method.
-  
+
     ## Loop through each file and parse
 
-    for f in range(0,len(infiles)) :
-        print("Parsing "+ infiles[f] +" ...")
+    for f in range(0, len(infiles)):
+        print("Parsing " + infiles[f] + " ...")
         ## Init the ChronoEntity list
         my_chronoentities = []
-        chrono_ID_counter=1
-
+        chrono_ID_counter = 1
 
         text, tokens, spans, tags, sents = utils.getWhitespaceTokens(infiles[f] + args.x)
 
-
-
-
         my_refToks = referenceToken.convertToRefTokens(tok_list=tokens, span=spans, pos=tags, sent_boundaries=sents)
 
-    
         chroList = utils.markNotable(my_refToks)
-
-        freqPhrases = utils.getFrequencyPhrases(chroList, text)
-        #dosePhrases = utils.getDosePhrases()
+        #freqPhrases = utils.getFrequencyPhrases(chroList, text)
+         #dosePhrases = utils.getDosePhrases()
         doseDurationPhrases=utils.getDoseDurationPhrases(chroList)
         #chrono_master_list, my_freq_ID_counter = BuildEntities.buildChronoList(freqPhrases,
-         #                                                                        chrono_ID_counter, chroList,
-          #                                                                       (classifier, args.m), feats)
+         #                                                                      chrono_ID_counter, chroList,
+          #                                                                     (classifier, args.m), feats)
 
-        chrono_master_list = (BuildEntities.buildChronoList(doseDurationPhrases,
+        chrono_master_list, my_freq_ID_counter= BuildEntities.buildChronoList(doseDurationPhrases,
                                                                              chrono_ID_counter, chroList,
-                                                                             (classifier, args.m), feats))[0]
-        print("length of chrono master list",len(chrono_master_list))
+                                                                             (classifier, args.m), feats)
 
         print("Number of Chrono Entities: " + str(len(chrono_master_list)))
-        utils.write_xml(chrono_list=chrono_master_list, outfile=outfiles[f])
+        if (args.X == '1'):
+            utils.write_xml(chrono_list=chrono_master_list, outfile=xml_outfiles[f])
+        utils.write_ann(chrono_list=chrono_master_list, outfile=ann_outfiles[f])
